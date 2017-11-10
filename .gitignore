@@ -1,0 +1,12 @@
+*.log
+*.pyc
+*.py~
+venv/*
+build/
+dist/
+jatsgenerator.egg-info
+.coverage
+tmp/*
+!tmp/.keepme
+tests/tmp/*
+!tests/tmp/.keepme
