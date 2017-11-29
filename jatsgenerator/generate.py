@@ -814,13 +814,11 @@ def output_xml_for_article(article, article_id, config_section="elife", add_comm
         logger.error("could not generate or write xml for " + str(article_id))
         return False
 
-
-def build_xml_from_csv(article_id, config_section="elife", add_comment=True):
-    # override settings
-    data.CSV_PATH = 'tests/test_data/'
+def build_article_from_csv(article_id, config_section="elife"):
+    "build article objects populated with csv data"
     article, error_count, error_messages = parse.build_article(article_id)
     if article:
-        return output_xml_for_article(article, article_id, config_section, add_comment)
+        return article
     else:
         logger.warning("the following article did not have enough components and " +
                        "xml was not generated " + str(article_id))
@@ -828,3 +826,10 @@ def build_xml_from_csv(article_id, config_section="elife", add_comment=True):
         if len(error_messages) > 0:
             logger.warning(", ".join(error_messages))
         return False
+
+def build_xml(article_id, article=None, config_section="elife", add_comment=True):
+    "generate xml from an article object"
+    if not article:
+        article = build_article_from_csv(article_id, config_section)
+    # for now just write to disk
+    return output_xml_for_article(article, article_id, config_section, add_comment)
