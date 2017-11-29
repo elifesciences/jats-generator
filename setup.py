@@ -1,16 +1,18 @@
+"module setup script"
 from setuptools import setup
 
 import jatsgenerator
 
 with open('README.rst') as fp:
-    readme = fp.read()
+    README = fp.read()
 
-setup(name='jatsgenerator',
+setup(
+    name='jatsgenerator',
     version=jatsgenerator.__version__,
     description='JATS XML generator.',
-    long_description=readme,
+    long_description=README,
     packages=['jatsgenerator'],
-    license = 'MIT',
+    license='MIT',
     install_requires=[
         "elifetools",
         "elifearticle",
