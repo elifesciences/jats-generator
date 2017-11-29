@@ -14,6 +14,7 @@ setup(name='jatsgenerator',
     install_requires=[
         "elifetools",
         "elifearticle",
+        "ejpcsvparser",
         "GitPython",
         "configparser"
     ],
