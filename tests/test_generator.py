@@ -9,6 +9,12 @@ TEST_DATA_PATH = TEST_BASE_PATH + "test_data" + os.sep
 TARGET_OUTPUT_DIR = TEST_BASE_PATH + "tmp" + os.sep
 generate.settings.TARGET_OUTPUT_DIR = TARGET_OUTPUT_DIR
 
+def read_file_content(file_name):
+    fp = open(file_name, 'rb')
+    content = fp.read()
+    fp.close()
+    return content
+
 class TestGenerate(unittest.TestCase):
 
     def setUp(self):
@@ -26,13 +32,8 @@ class TestGenerate(unittest.TestCase):
         self.passes.append((14997, 'elife', None, None, 'elife_poa_e14997.xml'))
         self.passes.append((21598, 'elife', None, None, 'elife_poa_e21598.xml'))
 
-    def read_file_content(self, file_name):
-        fp = open(file_name, 'rb')
-        content = fp.read()
-        fp.close()
-        return content
-
     def test_build_xml_from_csv(self):
+        "set of tests building csv into xml and compare the output"
         for (article_id, config_section, pub_date, volume, expected_xml_file) in self.passes:
             article = generate.build_article_from_csv(article_id, config_section)
             self.assertIsNotNone(article, "count not build article from csv")
@@ -44,13 +45,24 @@ class TestGenerate(unittest.TestCase):
             if volume:
                 article.volume = volume
             # generate XML
-            xml_return_value = generate.build_xml(
+            xml_return_value = generate.build_xml_to_disk(
                 article_id, article, config_section, add_comment=False)
             self.assertTrue(xml_return_value, "count not generate xml for the article")
-            generated_xml = self.read_file_content(TARGET_OUTPUT_DIR + expected_xml_file)
-            model_xml = self.read_file_content(TEST_DATA_PATH + expected_xml_file)
+            generated_xml = read_file_content(TARGET_OUTPUT_DIR + expected_xml_file)
+            model_xml = read_file_content(TEST_DATA_PATH + expected_xml_file)
             self.assertEqual(generated_xml, model_xml)
 
+    def test_build_no_conflict_default(self):
+        "test building with no article conflict_default value for test coverage"
+        # one of the authors in 7 has a conflict, will trigger testing the line of code
+        article_id = 7
+        article = generate.build_article_from_csv(article_id)
+        # reset the conflict default
+        article.conflict_default = None
+        article_xml = generate.build_xml(article_id, article)
+        self.assertIsNotNone(article_xml, "count not generate xml for the article")
+        self.assertFalse('other authors declare that no competing interests exist' in
+                         article_xml.prettyXML())
 
 if __name__ == '__main__':
     unittest.main()

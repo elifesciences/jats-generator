@@ -795,24 +795,10 @@ class ArticleXML(object):
         # Switch to toxml() instead of toprettyxml() to solve extra whitespace issues
         return reparsed.toxml(encoding=encoding)
 
-def write_xml(article_id, xml, output_dir=''):
+def write_xml_to_disk(article_id, article_xml, output_dir=''):
     fp = open(output_dir + os.sep + 'elife_poa_e' + str(int(article_id)).zfill(5) + '.xml', "wb")
-    fp.write(xml.prettyXML())
+    fp.write(article_xml.prettyXML())
     fp.close()
-
-def output_xml_for_article(article, article_id, config_section="elife", add_comment=True):
-    raw_config = config[config_section]
-    jats_config = parse_raw_config(raw_config)
-    try:
-        article_xml = ArticleXML(article, jats_config, add_comment)
-        logger.info("generated xml for " + str(article_id))
-        write_xml(article_id, article_xml, output_dir=settings.TARGET_OUTPUT_DIR)
-        logger.info("xml written for " + str(article_id))
-        print "written " + str(article_id)
-        return True
-    except:
-        logger.error("could not generate or write xml for " + str(article_id))
-        return False
 
 def build_article_from_csv(article_id, config_section="elife"):
     "build article objects populated with csv data"
@@ -829,7 +815,24 @@ def build_article_from_csv(article_id, config_section="elife"):
 
 def build_xml(article_id, article=None, config_section="elife", add_comment=True):
     "generate xml from an article object"
+    raw_config = config[config_section]
+    jats_config = parse_raw_config(raw_config)
     if not article:
         article = build_article_from_csv(article_id, config_section)
-    # for now just write to disk
-    return output_xml_for_article(article, article_id, config_section, add_comment)
+    article_xml = ArticleXML(article, jats_config, add_comment)
+    logger.info("generated xml for " + str(article_id))
+    return article_xml
+
+def build_xml_to_disk(article_id, article=None, config_section="elife", add_comment=True):
+    "generate xml from an article object and write to disk"
+    article_xml = build_xml(article_id, article, config_section, add_comment)
+    if article_xml:
+        try:
+            write_xml_to_disk(article_id, article_xml, output_dir=settings.TARGET_OUTPUT_DIR)
+            logger.info("xml written for " + str(article_id))
+            print "written " + str(article_id)
+            return True
+        except:
+            logger.error("could not write xml for " + str(article_id))
+            return False
+    return False
