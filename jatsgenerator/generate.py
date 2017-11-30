@@ -812,12 +812,17 @@ def build_xml(article_id, article=None, config_section="elife", add_comment=True
     jats_config = parse_raw_config(raw_config)
     if not article:
         article = build_article_from_csv(article_id, config_section)
-    article_xml = ArticleXML(article, jats_config, add_comment)
-    logger.info("generated xml for " + str(article_id))
-    return article_xml
+    try:
+        article_xml = ArticleXML(article, jats_config, add_comment)
+        logger.info("generated xml for " + str(article_id))
+        return article_xml
+    except:
+        return None
 
 def build_xml_to_disk(article_id, article=None, config_section="elife", add_comment=True):
     "generate xml from an article object and write to disk"
+    if not article:
+        article = build_article_from_csv(article_id, config_section)
     article_xml = build_xml(article_id, article, config_section, add_comment)
     raw_config = config[config_section]
     jats_config = parse_raw_config(raw_config)

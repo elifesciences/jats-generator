@@ -3,3 +3,4 @@ git+https://github.com/elifesciences/elife-article.git@fe3d0a549a280eec229dd935c
 git+https://github.com/elifesciences/ejp-csv-parser.git@da55770eb754158477128c24f08a4d7727aa5279#egg=ejpcsvparser
 GitPython==0.3.2.1
 configparser==3.5.0
+mock==1.3.0
