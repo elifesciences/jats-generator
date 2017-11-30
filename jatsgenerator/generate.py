@@ -786,10 +786,12 @@ class ArticleXML(object):
             return reparsed.toxml(encoding=encoding)
 
 
-def write_xml_to_disk(article_id, article_xml, output_dir=''):
-    fp = open(output_dir + os.sep + 'elife_poa_e' + str(int(article_id)).zfill(5) + '.xml', "wb")
-    fp.write(article_xml.output_xml())
-    fp.close()
+def write_xml_to_disk(article_xml, filename, output_dir=None):
+    filename_path = filename
+    if output_dir:
+        filename_path = output_dir + os.sep + filename
+    with open(filename_path, "wb") as fp:
+        fp.write(article_xml.output_xml())
 
 def build_article_from_csv(article_id, config_section="elife"):
     "build article objects populated with csv data"
@@ -817,9 +819,13 @@ def build_xml(article_id, article=None, config_section="elife", add_comment=True
 def build_xml_to_disk(article_id, article=None, config_section="elife", add_comment=True):
     "generate xml from an article object and write to disk"
     article_xml = build_xml(article_id, article, config_section, add_comment)
+    raw_config = config[config_section]
+    jats_config = parse_raw_config(raw_config)
     if article_xml:
+        filename = jats_config.get("xml_filename_pattern").format(
+            manuscript=article.manuscript)
         try:
-            write_xml_to_disk(article_id, article_xml, output_dir=settings.TARGET_OUTPUT_DIR)
+            write_xml_to_disk(article_xml, filename, output_dir=settings.TARGET_OUTPUT_DIR)
             logger.info("xml written for " + str(article_id))
             print "written " + str(article_id)
             return True
