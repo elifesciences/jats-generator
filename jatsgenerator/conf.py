@@ -12,6 +12,8 @@ def parse_raw_config(raw_config):
     list_values = []
 
     list_values.append("journal_id_types")
+    list_values.append("contrib_types")
+    list_values.append("history_date_types")
 
     for value_name in raw_config:
         if value_name in boolean_values:

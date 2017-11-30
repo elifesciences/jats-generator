@@ -33,15 +33,6 @@ class ArticleXML(object):
         # Create the root XML node
         self.root = Element('article')
 
-        # set the boiler plate values
-        self.journal_id_types = self.jats_config.get('journal_id_types')
-        self.contrib_types = ["author", "editor"]
-        self.date_types = ["received", "accepted"]
-        self.elife_journal_id = self.jats_config.get('journal_id')
-        self.elife_journal_title = "eLife"
-        self.elife_epub_issn = "2050-084X"
-        self.elife_publisher_name = "eLife Sciences Publications, Ltd"
-
         self.root.set('article-type', poa_article.article_type)
         self.root.set('xmlns:mml', 'http://www.w3.org/1998/Math/MathML')
         self.root.set('xmlns:xlink', 'http://www.w3.org/1999/xlink')
@@ -180,7 +171,7 @@ class ArticleXML(object):
 
         self.set_title_group(self.article_meta, poa_article)
 
-        for contrib_type in self.contrib_types:
+        for contrib_type in self.jats_config.get('contrib_types'):
             self.set_contrib_group(self.article_meta, poa_article, contrib_type)
 
         if bool([contrib for contrib in poa_article.contributors if contrib.corresp is True]):
@@ -327,7 +318,7 @@ class ArticleXML(object):
 
         # journal-title
         self.journal_title = SubElement(self.journal_title_group, "journal-title")
-        self.journal_title.text = self.elife_journal_title
+        self.journal_title.text = self.jats_config.get('journal_title')
 
     def set_journal_meta(self, parent):
         """
@@ -336,7 +327,7 @@ class ArticleXML(object):
         self.journal_meta = SubElement(parent, "journal-meta")
 
         # journal-id
-        for journal_id_type in self.journal_id_types:
+        for journal_id_type in self.jats_config.get('journal_id_types'):
             # concatenate the config name to look for the value
             config_name = "journal_id_" + journal_id_type
             journal_id_value = self.jats_config.get(config_name)
@@ -349,13 +340,13 @@ class ArticleXML(object):
 
         # title-group
         self.issn = SubElement(self.journal_meta, "issn")
-        self.issn.text = self.elife_epub_issn
+        self.issn.text = self.jats_config.get('journal_issn')
         self.issn.set("publication-format", "electronic")
 
         # publisher
         self.publisher = SubElement(self.journal_meta, "publisher")
         self.publisher_name = SubElement(self.publisher, "publisher-name")
-        self.publisher_name.text = self.elife_publisher_name
+        self.publisher_name.text = self.jats_config.get('publisher_name')
 
     def set_license(self, parent, poa_article):
         self.license = SubElement(parent, "license")
@@ -769,7 +760,7 @@ class ArticleXML(object):
     def set_history(self, parent, poa_article):
         self.history = SubElement(parent, "history")
 
-        for date_type in self.date_types:
+        for date_type in self.jats_config.get('history_date_types'):
             date = poa_article.get_date(date_type)
             if date:
                 self.set_date(self.history, poa_article, date_type)
