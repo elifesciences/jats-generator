@@ -774,10 +774,7 @@ class ArticleXML(object):
             if date:
                 self.set_date(self.history, poa_article, date_type)
 
-    def printXML(self):
-        print self.root
-
-    def prettyXML(self):
+    def output_xml(self, pretty=False, indent=""):
         publicId = '-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.1d3 20150301//EN'
         systemId = 'JATS-archivearticle1.dtd'
         encoding = 'utf-8'
@@ -791,13 +788,16 @@ class ArticleXML(object):
         reparsed = minidom.parseString(rough_string)
         if doctype:
             reparsed.insertBefore(doctype, reparsed.documentElement)
-        #return reparsed.toprettyxml(indent="\t", encoding = encoding)
-        # Switch to toxml() instead of toprettyxml() to solve extra whitespace issues
-        return reparsed.toxml(encoding=encoding)
+
+        if pretty is True:
+            return reparsed.toprettyxml(indent, encoding=encoding)
+        else:
+            return reparsed.toxml(encoding=encoding)
+
 
 def write_xml_to_disk(article_id, article_xml, output_dir=''):
     fp = open(output_dir + os.sep + 'elife_poa_e' + str(int(article_id)).zfill(5) + '.xml', "wb")
-    fp.write(article_xml.prettyXML())
+    fp.write(article_xml.output_xml())
     fp.close()
 
 def build_article_from_csv(article_id, config_section="elife"):

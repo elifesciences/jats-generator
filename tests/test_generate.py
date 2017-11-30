@@ -53,7 +53,10 @@ class TestGenerate(unittest.TestCase):
             self.assertEqual(generated_xml, model_xml)
 
     def test_build_no_conflict_default(self):
-        "test building with no article conflict_default value for test coverage"
+        """"
+        test building with no article conflict_default value for test coverage
+        and also test pretty output too for coverage
+        """
         # one of the authors in 7 has a conflict, will trigger testing the line of code
         article_id = 7
         article = generate.build_article_from_csv(article_id)
@@ -62,7 +65,7 @@ class TestGenerate(unittest.TestCase):
         article_xml = generate.build_xml(article_id, article)
         self.assertIsNotNone(article_xml, "count not generate xml for the article")
         self.assertFalse('other authors declare that no competing interests exist' in
-                         article_xml.prettyXML())
+                         article_xml.output_xml(pretty=True, indent='\t'))
 
 if __name__ == '__main__':
     unittest.main()
