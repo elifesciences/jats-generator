@@ -301,6 +301,7 @@ class ArticleXML(object):
         # XML
         tagged_string = '<' + tag_name + '>' + title + '</' + tag_name + '>'
         reparsed = minidom.parseString(tagged_string)
+        reparsed = minidom.parseString(tagged_string.encode('utf8'))
 
         root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
             root_xml_element, reparsed
@@ -421,7 +422,7 @@ class ArticleXML(object):
 
         # XML
         tagged_string = '<' + tag_name + '>' + abstract + '</' + tag_name + '>'
-        reparsed = minidom.parseString(tagged_string)
+        reparsed = minidom.parseString(tagged_string.encode('utf8'))
 
         root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
             root_xml_element, reparsed
