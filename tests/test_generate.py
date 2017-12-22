@@ -3,7 +3,6 @@ import time
 import os
 from mock import Mock, patch
 from jatsgenerator import generate
-from elifearticle.utils import unicode_value
 from elifearticle.article import ArticleDate
 
 TEST_BASE_PATH = os.path.dirname(os.path.abspath(__file__)) + os.sep
@@ -90,7 +89,7 @@ class TestGenerate(unittest.TestCase):
         article_xml = generate.build_xml(article_id, article)
         self.assertIsNotNone(article_xml, "count not generate xml for the article")
         self.assertFalse('other authors declare that no competing interests exist' in
-                         unicode_value(article_xml.output_xml(pretty=True, indent='\t')))
+                         article_xml.output_xml(pretty=True, indent='\t').decode('utf8'))
 
     def test_set_copyright_authors(self):
         "start with an article then change the authors for test coverage for different input"
@@ -99,7 +98,7 @@ class TestGenerate(unittest.TestCase):
         # test the value as is with more than two authors
         article_xml = generate.build_xml(article_id, article)
         self.assertTrue(
-            '<copyright-holder>Schuman et al</copyright-holder>' in unicode_value(article_xml.output_xml()))
+            '<copyright-holder>Schuman et al</copyright-holder>' in article_xml.output_xml().decode('utf8'))
         # set authors to be exactly two
         for index, author in enumerate(article.contributors):
             if index > 1:
@@ -107,18 +106,18 @@ class TestGenerate(unittest.TestCase):
         article_xml = generate.build_xml(article_id, article)
         self.assertTrue(
             '<copyright-holder>Schuman &amp; Barthel</copyright-holder>'
-            in unicode_value(article_xml.output_xml()))
+            in article_xml.output_xml().decode('utf8'))
         # set authors to be exactly one
         for index, author in enumerate(article.contributors):
             if index > 0:
                 del article.contributors[index]
         article_xml = generate.build_xml(article_id, article)
         self.assertTrue(
-            '<copyright-holder>Schuman</copyright-holder>' in unicode_value(article_xml.output_xml()))
+            '<copyright-holder>Schuman</copyright-holder>' in article_xml.output_xml().decode('utf8'))
         # no authors
         article.contributors = []
         article_xml = generate.build_xml(article_id, article)
-        self.assertTrue('<copyright-holder/>' in unicode_value(article_xml.output_xml()))
+        self.assertTrue('<copyright-holder/>' in article_xml.output_xml().decode('utf8'))
 
     def test_set_copyright_license_date(self):
         "start with an article then remove the license date"
@@ -132,7 +131,7 @@ class TestGenerate(unittest.TestCase):
         accepted_date_object = ArticleDate("pub", accepted_date)
         article.dates['accepted'] = accepted_date_object
         article_xml = generate.build_xml(article_id, article)
-        self.assertTrue('<copyright-year>2037</copyright-year>' in unicode_value(article_xml.output_xml()))
+        self.assertTrue('<copyright-year>2037</copyright-year>' in article_xml.output_xml().decode('utf8'))
 
     def test_contributor_equal_contrib(self):
         "set equal_contrib on an author to test the output"
@@ -145,13 +144,13 @@ class TestGenerate(unittest.TestCase):
         article_xml = generate.build_xml(article_id, article)
         self.assertTrue(
             '<contrib contrib-type="author" equal_contrib="yes" id="author-1399">'
-            in unicode_value(article_xml.output_xml()))
+            in article_xml.output_xml().decode('utf8'))
         self.assertTrue(
             '<contrib contrib-type="author" corresp="yes" equal_contrib="yes" id="author-1400">'
-            in unicode_value(article_xml.output_xml()))
+            in article_xml.output_xml().decode('utf8'))
         self.assertTrue(
             '<contrib contrib-type="author" corresp="yes" equal_contrib="yes" id="author-1013">'
-            in unicode_value(article_xml.output_xml()))
+            in article_xml.output_xml().decode('utf8'))
 
     def test_contributor_phone_fax(self):
         "set phone and fax on an author to test the output for test coverage"
@@ -161,8 +160,8 @@ class TestGenerate(unittest.TestCase):
         article.contributors[0].affiliations[0].phone = '555-5555'
         article.contributors[0].affiliations[0].fax = '555-5555'
         article_xml = generate.build_xml(article_id, article)
-        self.assertTrue('<phone>555-5555</phone>' in unicode_value(article_xml.output_xml()))
-        self.assertTrue('<fax>555-5555</fax>' in unicode_value(article_xml.output_xml()))
+        self.assertTrue('<phone>555-5555</phone>' in article_xml.output_xml().decode('utf8'))
+        self.assertTrue('<fax>555-5555</fax>' in article_xml.output_xml().decode('utf8'))
 
     def test_do_display_channel(self):
         "test when the display channel is blank"
@@ -171,7 +170,7 @@ class TestGenerate(unittest.TestCase):
         article.display_channel = None
         article_xml = generate.build_xml(article_id, article)
         self.assertTrue(
-            '<subj-group subj-group-type="display-channel">' not in unicode_value(article_xml.output_xml()))
+            '<subj-group subj-group-type="display-channel">' not in article_xml.output_xml().decode('utf8'))
 
     def test_do_subject_heading(self):
         "test when the article_categories is empty"
@@ -180,7 +179,7 @@ class TestGenerate(unittest.TestCase):
         article.article_categories = []
         article_xml = generate.build_xml(article_id, article)
         self.assertTrue(
-            '<subj-group subj-group-type="heading">' not in unicode_value(article_xml.output_xml()))
+            '<subj-group subj-group-type="heading">' not in article_xml.output_xml().decode('utf8'))
 
     def test_do_article_categories(self):
         "test when there is no display channel or article categories"
@@ -190,7 +189,7 @@ class TestGenerate(unittest.TestCase):
         article.article_categories = []
         article_xml = generate.build_xml(article_id, article)
         # now it should have no <article-categories> section at all
-        self.assertTrue('<article-categories>' not in unicode_value(article_xml.output_xml()))
+        self.assertTrue('<article-categories>' not in article_xml.output_xml().decode('utf8'))
 
     def test_author_keywords(self):
         "test setting author keywords which is currently disabled"
@@ -201,7 +200,7 @@ class TestGenerate(unittest.TestCase):
         article_xml = generate.build_xml(article_id, article)
         article_xml.set_kwd_group_author_keywords(article_xml.article_meta, article)
         self.assertTrue(
-            '<kwd-group kwd-group-type="author-keywords">' in unicode_value(article_xml.output_xml()))
+            '<kwd-group kwd-group-type="author-keywords">' in article_xml.output_xml().decode('utf8'))
 
 if __name__ == '__main__':
     unittest.main()
