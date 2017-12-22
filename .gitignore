@@ -2,6 +2,7 @@
 *.pyc
 *.py~
 venv/*
+.tox/*
 build/
 dist/
 jatsgenerator.egg-info
