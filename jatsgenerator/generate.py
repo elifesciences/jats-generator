@@ -1,16 +1,17 @@
+from __future__ import print_function
 import logging
 import time
 import os
 from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.etree import ElementTree
 from xml.dom import minidom
-from conf import config, parse_raw_config
+from jatsgenerator.conf import config, parse_raw_config
 from elifetools import utils as etoolsutils
 from elifetools import xmlio
 from elifearticle import utils as eautils
 import ejpcsvparser.parse as parse
 import ejpcsvparser.csv_data as data
-import settings
+import ejpcsvparser.settings as settings
 
 
 logger = logging.getLogger('xml_gen')
@@ -300,7 +301,7 @@ class ArticleXML(object):
 
         # XML
         tagged_string = '<' + tag_name + '>' + title + '</' + tag_name + '>'
-        reparsed = minidom.parseString(tagged_string)
+        reparsed = minidom.parseString(tagged_string.encode('utf8'))
 
         root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
             root_xml_element, reparsed
@@ -421,7 +422,7 @@ class ArticleXML(object):
 
         # XML
         tagged_string = '<' + tag_name + '>' + abstract + '</' + tag_name + '>'
-        reparsed = minidom.parseString(tagged_string)
+        reparsed = minidom.parseString(tagged_string.encode('utf8'))
 
         root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
             root_xml_element, reparsed
@@ -438,7 +439,7 @@ class ArticleXML(object):
         """
         aff_id = None
 
-        for key, value in self.author_affs.iteritems():
+        for key, value in self.author_affs.items():
             if self.compare_aff(affiliation, value):
                 aff_id = key
         if not aff_id:
@@ -552,7 +553,7 @@ class ArticleXML(object):
 
         # Add the aff tags
         if contrib_type != "editor":
-            for key, value in self.author_affs.iteritems():
+            for key, value in self.author_affs.items():
                 aff_id = "aff" + str(key)
                 self.set_aff(self.contrib_group, value, contrib_type, aff_id)
 
@@ -832,7 +833,7 @@ def build_xml_to_disk(article_id, article=None, config_section="elife", add_comm
         try:
             write_xml_to_disk(article_xml, filename, output_dir=settings.TARGET_OUTPUT_DIR)
             logger.info("xml written for " + str(article_id))
-            print "written " + str(article_id)
+            print("written " + str(article_id))
             return True
         except:
             logger.error("could not write xml for " + str(article_id))
