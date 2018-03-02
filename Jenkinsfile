@@ -4,6 +4,10 @@ elifeLibrary {
     }
 
     stage 'Project tests', {
-        elifeLocalTests "./project_tests.sh"
+        try {
+            elifeLocalTests "./project_tests.sh"
+        } finally {
+            archive 'xml_gen.log'
+        }
     }
 }
