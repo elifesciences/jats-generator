@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 tox
 . .tox/py35/bin/activate
