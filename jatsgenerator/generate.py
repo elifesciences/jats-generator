@@ -222,8 +222,15 @@ class ArticleXML(object):
 
     def set_data_availability(self, parent, poa_article):
         if poa_article.data_availability:
-            p_tag = SubElement(parent, "p")
-            p_tag.text = poa_article.data_availability
+            tag_name = 'p'
+            # Escape any unescaped ampersands
+            data_availability = etoolsutils.escape_ampersand(poa_article.data_availability)
+            # XML
+            tagged_string = '<' + tag_name + '>' + data_availability + '</' + tag_name + '>'
+            reparsed = minidom.parseString(tagged_string.encode('utf8'))
+            root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
+                parent, reparsed
+                )
 
     def set_major_datasets(self, parent, poa_article):
         self.p_tag = SubElement(parent, "p")
