@@ -6,6 +6,7 @@ from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.etree import ElementTree
 from xml.dom import minidom
 from jatsgenerator.conf import config, parse_raw_config
+from jatsgenerator import utils
 from elifetools import utils as etoolsutils
 from elifetools import xmlio
 from elifearticle import utils as eautils
@@ -226,7 +227,7 @@ class ArticleXML(object):
             # Escape any unescaped ampersands
             data_availability = etoolsutils.escape_ampersand(poa_article.data_availability)
             # XML
-            tagged_string = '<' + tag_name + '>' + data_availability + '</' + tag_name + '>'
+            tagged_string = utils.tag_wrap(tag_name, data_availability)
             reparsed = minidom.parseString(tagged_string.encode('utf8'))
             root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
                 parent, reparsed
@@ -299,7 +300,7 @@ class ArticleXML(object):
         title = etoolsutils.escape_ampersand(poa_article.title)
 
         # XML
-        tagged_string = '<' + tag_name + '>' + title + '</' + tag_name + '>'
+        tagged_string = utils.tag_wrap(tag_name, title)
         reparsed = minidom.parseString(tagged_string.encode('utf8'))
 
         root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
@@ -420,7 +421,7 @@ class ArticleXML(object):
         abstract = etoolsutils.escape_ampersand(poa_article.abstract)
 
         # XML
-        tagged_string = '<' + tag_name + '>' + abstract + '</' + tag_name + '>'
+        tagged_string = utils.tag_wrap(tag_name, abstract)
         reparsed = minidom.parseString(tagged_string.encode('utf8'))
 
         root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
