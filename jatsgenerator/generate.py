@@ -5,14 +5,13 @@ import os
 from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.etree import ElementTree
 from xml.dom import minidom
-from jatsgenerator.conf import config, parse_raw_config
+from jatsgenerator.conf import raw_config, parse_raw_config
 from jatsgenerator import utils
 from elifetools import utils as etoolsutils
 from elifetools import xmlio
 from elifearticle import utils as eautils
 import ejpcsvparser.parse as parse
 import ejpcsvparser.csv_data as data
-import ejpcsvparser.settings as settings
 
 
 logger = logging.getLogger('xml_gen')
@@ -794,8 +793,12 @@ def write_xml_to_disk(article_xml, filename, output_dir=None):
     with open(filename_path, "wb") as fp:
         fp.write(article_xml.output_xml())
 
-def build_article_from_csv(article_id, config_section="elife"):
+
+
+def build_article_from_csv(article_id, jats_config=None):
     "build article objects populated with csv data"
+    if not jats_config:
+        jats_config = parse_raw_config(raw_config(None))
     article, error_count, error_messages = parse.build_article(article_id)
     if article:
         return article
@@ -807,12 +810,13 @@ def build_article_from_csv(article_id, config_section="elife"):
             logger.warning(", ".join(error_messages))
         return False
 
-def build_xml(article_id, article=None, config_section="elife", add_comment=True):
+def build_xml(article_id, article=None, jats_config=None, add_comment=True):
     "generate xml from an article object"
-    raw_config = config[config_section]
-    jats_config = parse_raw_config(raw_config)
+    if not jats_config:
+        jats_config = parse_raw_config(raw_config(None))
+
     if not article:
-        article = build_article_from_csv(article_id, config_section)
+        article = build_article_from_csv(article_id, jats_config)
     try:
         article_xml = ArticleXML(article, jats_config, add_comment)
         logger.info("generated xml for " + str(article_id))
@@ -820,18 +824,19 @@ def build_xml(article_id, article=None, config_section="elife", add_comment=True
     except:
         return None
 
-def build_xml_to_disk(article_id, article=None, config_section="elife", add_comment=True):
+def build_xml_to_disk(article_id, article=None, jats_config=None, add_comment=True):
     "generate xml from an article object and write to disk"
+    if not jats_config:
+        jats_config = parse_raw_config(raw_config(None))
     if not article:
-        article = build_article_from_csv(article_id, config_section)
-    article_xml = build_xml(article_id, article, config_section, add_comment)
-    raw_config = config[config_section]
-    jats_config = parse_raw_config(raw_config)
+        article = build_article_from_csv(article_id, jats_config)
+    article_xml = build_xml(article_id, article, jats_config, add_comment)
     if article_xml:
         filename = jats_config.get("xml_filename_pattern").format(
             manuscript=article.manuscript)
         try:
-            write_xml_to_disk(article_xml, filename, output_dir=settings.TARGET_OUTPUT_DIR)
+            output_dir = jats_config.get("target_output_dir")
+            write_xml_to_disk(article_xml, filename, output_dir)
             logger.info("xml written for " + str(article_id))
             print("written " + str(article_id))
             return True

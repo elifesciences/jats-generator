@@ -4,11 +4,11 @@ import os
 from mock import Mock, patch
 from jatsgenerator import generate
 from elifearticle.article import ArticleDate
+from jatsgenerator.conf import raw_config, parse_raw_config
 
 TEST_BASE_PATH = os.path.dirname(os.path.abspath(__file__)) + os.sep
 TEST_DATA_PATH = TEST_BASE_PATH + "test_data" + os.sep
 TARGET_OUTPUT_DIR = TEST_BASE_PATH + "tmp" + os.sep
-generate.settings.TARGET_OUTPUT_DIR = TARGET_OUTPUT_DIR
 
 def read_file_content(file_name):
     fp = open(file_name, 'rb')
@@ -20,7 +20,7 @@ class TestGenerate(unittest.TestCase):
 
     def setUp(self):
         # override settings
-        generate.data.CSV_PATH = 'tests/test_data/'
+        generate.data.CSV_PATH = TEST_DATA_PATH
         self.passes = []
         self.default_pub_date = time.strptime("2012-11-13", "%Y-%m-%d")
         self.passes.append((3, 'elife', self.default_pub_date, 1, 'elife_poa_e00003.xml'))
@@ -33,10 +33,17 @@ class TestGenerate(unittest.TestCase):
         self.passes.append((14997, 'elife', None, None, 'elife_poa_e14997.xml'))
         self.passes.append((21598, 'elife', None, None, 'elife_poa_e21598.xml'))
 
+    def build_config(self, config_section):
+        "build the config and override the output directory"
+        jats_config = parse_raw_config(raw_config(config_section))
+        jats_config['target_output_dir'] = TARGET_OUTPUT_DIR
+        return jats_config
+
     def test_build_xml_from_csv(self):
         "set of tests building csv into xml and compare the output"
         for (article_id, config_section, pub_date, volume, expected_xml_file) in self.passes:
-            article = generate.build_article_from_csv(article_id, config_section)
+            jats_config = self.build_config(config_section)
+            article = generate.build_article_from_csv(article_id, jats_config)
             self.assertIsNotNone(article, "count not build article from csv")
             # add the pub_date
             if pub_date:
@@ -47,7 +54,7 @@ class TestGenerate(unittest.TestCase):
                 article.volume = volume
             # generate XML
             xml_return_value = generate.build_xml_to_disk(
-                article_id, article, config_section, add_comment=False)
+                article_id, article, jats_config, add_comment=False)
             self.assertTrue(xml_return_value, "count not generate xml for the article")
             generated_xml = read_file_content(TARGET_OUTPUT_DIR + expected_xml_file)
             model_xml = read_file_content(TEST_DATA_PATH + expected_xml_file)
