@@ -12,7 +12,6 @@ from elifetools import xmlio
 from elifearticle import utils as eautils
 import ejpcsvparser.parse as parse
 import ejpcsvparser.csv_data as data
-import ejpcsvparser.settings as settings
 
 
 logger = logging.getLogger('xml_gen')
@@ -831,7 +830,8 @@ def build_xml_to_disk(article_id, article=None, config_section="elife", add_comm
         filename = jats_config.get("xml_filename_pattern").format(
             manuscript=article.manuscript)
         try:
-            write_xml_to_disk(article_xml, filename, output_dir=settings.TARGET_OUTPUT_DIR)
+            output_dir = jats_config.get("target_output_dir")
+            write_xml_to_disk(article_xml, filename, output_dir)
             logger.info("xml written for " + str(article_id))
             print("written " + str(article_id))
             return True

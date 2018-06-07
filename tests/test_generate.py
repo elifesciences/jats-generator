@@ -8,7 +8,6 @@ from elifearticle.article import ArticleDate
 TEST_BASE_PATH = os.path.dirname(os.path.abspath(__file__)) + os.sep
 TEST_DATA_PATH = TEST_BASE_PATH + "test_data" + os.sep
 TARGET_OUTPUT_DIR = TEST_BASE_PATH + "tmp" + os.sep
-generate.settings.TARGET_OUTPUT_DIR = TARGET_OUTPUT_DIR
 
 def read_file_content(file_name):
     fp = open(file_name, 'rb')
