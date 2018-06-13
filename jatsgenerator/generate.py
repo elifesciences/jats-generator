@@ -85,7 +85,7 @@ class ArticleXML(object):
             self.set_fn_group_competing_interest(self.sec, poa_article)
         if len(poa_article.ethics) > 0:
             self.set_fn_group_ethics_information(self.sec, poa_article)
-        if len(poa_article.datasets) > 0:
+        if len(poa_article.datasets) > 0 or poa_article.data_availability:
             self.sec = self.set_section(self.back, "supplementary-material")
             self.sec_title = SubElement(self.sec, "title")
             self.sec_title.text = "Additional Files"
