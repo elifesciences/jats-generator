@@ -55,7 +55,9 @@ class TestGenerate(unittest.TestCase):
             # generate XML
             xml_return_value = generate.build_xml_to_disk(
                 article_id, article, jats_config, add_comment=False)
-            self.assertTrue(xml_return_value, "count not generate xml for the article")
+            self.assertTrue(xml_return_value,
+                            "count not generate xml for the article {article_id}".format(
+                                article_id=article_id))
             generated_xml = read_file_content(TARGET_OUTPUT_DIR + expected_xml_file)
             model_xml = read_file_content(TEST_DATA_PATH + expected_xml_file)
             self.assertEqual(generated_xml, model_xml)

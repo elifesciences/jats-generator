@@ -118,9 +118,10 @@ class ArticleXML(object):
                     fn_tag = SubElement(self.competing_interest, "fn")
                     fn_tag.set("fn-type", "conflict")
                     fn_tag.set("id", conf_id)
-                    p_tag = SubElement(fn_tag, "p")
-                    p_tag.text = contributor.given_name + " " + contributor.surname + ", "
-                    p_tag.text = p_tag.text + conflict + "."
+                    tag_name = 'p'
+                    conflict_text = (contributor.given_name + " " + contributor.surname +
+                                     ", " + conflict + ".")
+                    new_tag = utils.append_to_tag(fn_tag, tag_name, conflict_text)
                     # increment
                     conflict_count = conflict_count + 1
         if poa_article.conflict_default:
@@ -223,14 +224,7 @@ class ArticleXML(object):
     def set_data_availability(self, parent, poa_article):
         if poa_article.data_availability:
             tag_name = 'p'
-            # Escape any unescaped ampersands
-            data_availability = etoolsutils.escape_ampersand(poa_article.data_availability)
-            # XML
-            tagged_string = utils.tag_wrap(tag_name, data_availability)
-            reparsed = minidom.parseString(tagged_string.encode('utf8'))
-            root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
-                parent, reparsed
-                )
+            new_tag = utils.append_to_tag(parent, tag_name, poa_article.data_availability)
 
     def set_major_datasets(self, parent, poa_article):
         self.p_tag = SubElement(parent, "p")
@@ -295,18 +289,8 @@ class ArticleXML(object):
         root_tag_name = 'title-group'
         tag_name = 'article-title'
         root_xml_element = Element(root_tag_name)
-        # Escape any unescaped ampersands
-        title = etoolsutils.escape_ampersand(poa_article.title)
-
-        # XML
-        tagged_string = utils.tag_wrap(tag_name, title)
-        reparsed = minidom.parseString(tagged_string.encode('utf8'))
-
-        root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
-            root_xml_element, reparsed
-            )
-
-        parent.append(root_xml_element)
+        new_tag = utils.append_to_tag(root_xml_element, tag_name, poa_article.title)
+        parent.append(new_tag)
 
     def set_journal_title_group(self, parent):
         """
@@ -416,18 +400,8 @@ class ArticleXML(object):
         root_tag_name = 'abstract'
         tag_name = 'p'
         root_xml_element = Element(root_tag_name)
-        # Escape any unescaped ampersands
-        abstract = etoolsutils.escape_ampersand(poa_article.abstract)
-
-        # XML
-        tagged_string = utils.tag_wrap(tag_name, abstract)
-        reparsed = minidom.parseString(tagged_string.encode('utf8'))
-
-        root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
-            root_xml_element, reparsed
-            )
-
-        parent.append(root_xml_element)
+        new_tag = utils.append_to_tag(root_xml_element, tag_name, poa_article.abstract)
+        parent.append(new_tag)
 
     def get_aff_id(self, affiliation):
         """
@@ -647,8 +621,9 @@ class ArticleXML(object):
         title = SubElement(self.kwd_group, "title")
         title.text = "Research organism"
         for research_organism in poa_article.research_organisms:
-            kwd = SubElement(self.kwd_group, "kwd")
-            kwd.text = research_organism
+            parent_tag = self.kwd_group
+            tag_name = 'kwd'
+            new_tag = utils.append_to_tag(parent_tag, tag_name, research_organism)
 
     def set_kwd_group_author_keywords(self, parent, poa_article):
         # kwd-group kwd-group-type="author-keywords"
