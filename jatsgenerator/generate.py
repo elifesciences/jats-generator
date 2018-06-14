@@ -223,14 +223,7 @@ class ArticleXML(object):
     def set_data_availability(self, parent, poa_article):
         if poa_article.data_availability:
             tag_name = 'p'
-            # Escape any unescaped ampersands
-            data_availability = etoolsutils.escape_ampersand(poa_article.data_availability)
-            # XML
-            tagged_string = utils.tag_wrap(tag_name, data_availability)
-            reparsed = minidom.parseString(tagged_string.encode('utf8'))
-            root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
-                parent, reparsed
-                )
+            new_tag = utils.append_to_tag(parent, tag_name, poa_article.data_availability)
 
     def set_major_datasets(self, parent, poa_article):
         self.p_tag = SubElement(parent, "p")
@@ -295,18 +288,8 @@ class ArticleXML(object):
         root_tag_name = 'title-group'
         tag_name = 'article-title'
         root_xml_element = Element(root_tag_name)
-        # Escape any unescaped ampersands
-        title = etoolsutils.escape_ampersand(poa_article.title)
-
-        # XML
-        tagged_string = utils.tag_wrap(tag_name, title)
-        reparsed = minidom.parseString(tagged_string.encode('utf8'))
-
-        root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
-            root_xml_element, reparsed
-            )
-
-        parent.append(root_xml_element)
+        new_tag = utils.append_to_tag(root_xml_element, tag_name, poa_article.title)
+        parent.append(new_tag)
 
     def set_journal_title_group(self, parent):
         """
@@ -416,18 +399,8 @@ class ArticleXML(object):
         root_tag_name = 'abstract'
         tag_name = 'p'
         root_xml_element = Element(root_tag_name)
-        # Escape any unescaped ampersands
-        abstract = etoolsutils.escape_ampersand(poa_article.abstract)
-
-        # XML
-        tagged_string = utils.tag_wrap(tag_name, abstract)
-        reparsed = minidom.parseString(tagged_string.encode('utf8'))
-
-        root_xml_element = xmlio.append_minidom_xml_to_elementtree_xml(
-            root_xml_element, reparsed
-            )
-
-        parent.append(root_xml_element)
+        new_tag = utils.append_to_tag(root_xml_element, tag_name, poa_article.abstract)
+        parent.append(new_tag)
 
     def get_aff_id(self, affiliation):
         """
