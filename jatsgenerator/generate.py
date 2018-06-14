@@ -621,8 +621,9 @@ class ArticleXML(object):
         title = SubElement(self.kwd_group, "title")
         title.text = "Research organism"
         for research_organism in poa_article.research_organisms:
-            kwd = SubElement(self.kwd_group, "kwd")
-            kwd.text = research_organism
+            parent_tag = self.kwd_group
+            tag_name = 'kwd'
+            new_tag = utils.append_to_tag(parent_tag, tag_name, research_organism)
 
     def set_kwd_group_author_keywords(self, parent, poa_article):
         # kwd-group kwd-group-type="author-keywords"
