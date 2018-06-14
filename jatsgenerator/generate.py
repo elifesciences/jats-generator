@@ -118,9 +118,10 @@ class ArticleXML(object):
                     fn_tag = SubElement(self.competing_interest, "fn")
                     fn_tag.set("fn-type", "conflict")
                     fn_tag.set("id", conf_id)
-                    p_tag = SubElement(fn_tag, "p")
-                    p_tag.text = contributor.given_name + " " + contributor.surname + ", "
-                    p_tag.text = p_tag.text + conflict + "."
+                    tag_name = 'p'
+                    conflict_text = (contributor.given_name + " " + contributor.surname +
+                                     ", " + conflict + ".")
+                    new_tag = utils.append_to_tag(fn_tag, tag_name, conflict_text)
                     # increment
                     conflict_count = conflict_count + 1
         if poa_article.conflict_default:
