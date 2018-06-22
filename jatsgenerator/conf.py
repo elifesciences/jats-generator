@@ -2,43 +2,47 @@ import configparser as configparser
 import json
 
 CONFIG_FILE = 'jatsgenerator.cfg'
+BOOLEAN_VALUES = []
+INT_VALUES = []
+LIST_VALUES = ['journal_id_types', 'contrib_types', 'history_date_types']
 
-def load_config(config_file=None):
-    if not config_file:
-        config_file=CONFIG_FILE
+def load_config(config_file=CONFIG_FILE):
     config = configparser.ConfigParser(interpolation=None)
     config.read(config_file)
     return config
 
-def raw_config(config_section, config_file=None):
+def raw_config(config_section, config_file=CONFIG_FILE):
     "try to load the config section"
-    if not config_file:
-        config_file=CONFIG_FILE
     config = load_config(config_file)
     if config.has_section(config_section):
         return config[config_section]
     # default
-    return config['DEFAULT']
+    return config.defaults()
 
-def parse_raw_config(raw_config):
+def boolean_config(config, value_name):
+    "extract the value as a boolean"
+    return config.getboolean(value_name)
+
+def int_config(config, value_name):
+    "extract the value as an int"
+    return config.getint(value_name)
+
+def list_config(config, value_name):
+    "extract the value as a list parsed from JSON"
+    return json.loads(config.get(value_name))
+
+def parse_raw_config(config):
     "parse the raw config to something good"
-    jats_config = {}
-    boolean_values = []
-    int_values = []
-    list_values = []
+    config_dict = {}
 
-    list_values.append("journal_id_types")
-    list_values.append("contrib_types")
-    list_values.append("history_date_types")
-
-    for value_name in raw_config:
-        if value_name in boolean_values:
-            jats_config[value_name] = raw_config.getboolean(value_name)
-        elif value_name in int_values:
-            jats_config[value_name] = raw_config.getint(value_name)
-        elif value_name in list_values:
-            jats_config[value_name] = json.loads(raw_config.get(value_name))
+    for value_name in config:
+        if value_name in BOOLEAN_VALUES:
+            config_dict[value_name] = boolean_config(config, value_name)
+        elif value_name in INT_VALUES:
+            config_dict[value_name] = int_config(config, value_name)
+        elif value_name in LIST_VALUES:
+            config_dict[value_name] = list_config(config, value_name)
         else:
             # default
-            jats_config[value_name] = raw_config.get(value_name)
-    return jats_config
+            config_dict[value_name] = config.get(value_name)
+    return config_dict
