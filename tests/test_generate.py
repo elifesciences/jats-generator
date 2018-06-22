@@ -3,8 +3,11 @@ import time
 import os
 from mock import Mock, patch
 from jatsgenerator import generate
+from jatsgenerator.generate import ArticleXML
 from elifearticle.article import ArticleDate
 from jatsgenerator.conf import raw_config, parse_raw_config
+from ejpcsvparser import csv_data
+
 
 TEST_BASE_PATH = os.path.dirname(os.path.abspath(__file__)) + os.sep
 TEST_DATA_PATH = TEST_BASE_PATH + "test_data" + os.sep
@@ -20,7 +23,7 @@ class TestGenerate(unittest.TestCase):
 
     def setUp(self):
         # override settings
-        generate.data.CSV_PATH = TEST_DATA_PATH
+        csv_data.CSV_PATH = TEST_DATA_PATH
         self.passes = []
         self.default_pub_date = time.strptime("2012-11-13", "%Y-%m-%d")
         self.passes.append((3, 'elife', self.default_pub_date, 1, 'elife_poa_e00003.xml'))
@@ -56,7 +59,7 @@ class TestGenerate(unittest.TestCase):
             xml_return_value = generate.build_xml_to_disk(
                 article_id, article, jats_config, add_comment=False)
             self.assertTrue(xml_return_value,
-                            "count not generate xml for the article {article_id}".format(
+                            "could not generate xml to disk for {article_id}".format(
                                 article_id=article_id))
             generated_xml = read_file_content(TARGET_OUTPUT_DIR + expected_xml_file)
             model_xml = read_file_content(TEST_DATA_PATH + expected_xml_file)
@@ -73,6 +76,18 @@ class TestGenerate(unittest.TestCase):
         article_id = 99999
         return_value = generate.build_xml(article_id)
         self.assertIsNone(return_value)
+
+    def test_build_xml_failure_bad_article(self):
+        "test building article xml from a bad article object"
+        article_id = 99999
+        article = True
+        article_xml = generate.build_xml(article_id, article)
+        self.assertFalse(hasattr(article_xml, 'root'))
+
+    def test_article_xml_instantiate_failure(self):
+        "test ArticleXML object with bad data"
+        article_xml = ArticleXML(None, None)
+        self.assertFalse(hasattr(article_xml, 'root'))
 
     @patch('jatsgenerator.generate.write_xml_to_disk')
     def test_build_xml_to_disk_failure(self, fake_writer):

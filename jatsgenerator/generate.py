@@ -7,19 +7,19 @@ from xml.etree import ElementTree
 from xml.dom import minidom
 from jatsgenerator.conf import raw_config, parse_raw_config
 from jatsgenerator import utils
-from elifetools import utils as etoolsutils
 from elifetools import xmlio
 from elifearticle import utils as eautils
+from elifearticle.article import Article
 import ejpcsvparser.parse as parse
-import ejpcsvparser.csv_data as data
 
 
-logger = logging.getLogger('xml_gen')
-hdlr = logging.FileHandler('xml_gen.log')
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr)
-logger.setLevel(logging.INFO)
+LOGGER = logging.getLogger('xml_gen')
+HDLR = logging.FileHandler('xml_gen.log')
+FORMATTER = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+HDLR.setFormatter(FORMATTER)
+LOGGER.addHandler(HDLR)
+LOGGER.setLevel(logging.INFO)
+
 
 class ArticleXML(object):
 
@@ -29,12 +29,16 @@ class ArticleXML(object):
         get the article type from the object passed in to the class
         set default values for items that are boilder plate for this XML
         """
+        if not(isinstance(poa_article, Article)):
+            return
+
         # Set the config
         self.jats_config = jats_config
         # Create the root XML node
         self.root = Element('article')
 
-        self.root.set('article-type', poa_article.article_type)
+        if poa_article.article_type:
+            self.root.set('article-type', poa_article.article_type)
         self.root.set('xmlns:mml', 'http://www.w3.org/1998/Math/MathML')
         self.root.set('xmlns:xlink', 'http://www.w3.org/1999/xlink')
         self.root.set('dtd-version', '1.1d3')
@@ -113,7 +117,7 @@ class ArticleXML(object):
 
         for contributor in poa_article.contributors:
             if contributor.conflict:
-                for conflict in  contributor.conflict:
+                for conflict in contributor.conflict:
                     conf_id = "conf" + str(conflict_count + 1)
                     fn_tag = SubElement(self.competing_interest, "fn")
                     fn_tag.set("fn-type", "conflict")
@@ -121,7 +125,7 @@ class ArticleXML(object):
                     tag_name = 'p'
                     conflict_text = (contributor.given_name + " " + contributor.surname +
                                      ", " + conflict + ".")
-                    new_tag = utils.append_to_tag(fn_tag, tag_name, conflict_text)
+                    utils.append_to_tag(fn_tag, tag_name, conflict_text)
                     # increment
                     conflict_count = conflict_count + 1
         if poa_article.conflict_default:
@@ -195,7 +199,6 @@ class ArticleXML(object):
 
         self.set_abstract(self.article_meta, poa_article)
 
-
         # Disabled author keywords from inclusion Oct 2, 2015
         """
         if len(poa_article.author_keywords) > 0:
@@ -224,7 +227,7 @@ class ArticleXML(object):
     def set_data_availability(self, parent, poa_article):
         if poa_article.data_availability:
             tag_name = 'p'
-            new_tag = utils.append_to_tag(parent, tag_name, poa_article.data_availability)
+            utils.append_to_tag(parent, tag_name, poa_article.data_availability)
 
     def set_major_datasets(self, parent, poa_article):
         self.p_tag = SubElement(parent, "p")
@@ -280,7 +283,6 @@ class ArticleXML(object):
         if dataset.license_info:
             self.comment = SubElement(element_citation_tag, "comment")
             self.comment.text = dataset.license_info
-
 
     def set_title_group(self, parent, poa_article):
         """
@@ -623,7 +625,7 @@ class ArticleXML(object):
         for research_organism in poa_article.research_organisms:
             parent_tag = self.kwd_group
             tag_name = 'kwd'
-            new_tag = utils.append_to_tag(parent_tag, tag_name, research_organism)
+            utils.append_to_tag(parent_tag, tag_name, research_organism)
 
     def set_kwd_group_author_keywords(self, parent, poa_article):
         # kwd-group kwd-group-type="author-keywords"
@@ -655,7 +657,6 @@ class ArticleXML(object):
             self.award_id.text = award_id
         if len(award.principal_award_recipients) > 0:
             self.set_principal_award_recipients(award_group, award)
-
 
     def set_funding_source(self, parent, institution_id, institution_name):
         self.funding_source = SubElement(parent, "funding-source")
@@ -744,7 +745,6 @@ class ArticleXML(object):
         publicId = '-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.1d3 20150301//EN'
         systemId = 'JATS-archivearticle1.dtd'
         encoding = 'utf-8'
-        namespaceURI = None
         qualifiedName = "article"
 
         doctype = xmlio.ElifeDocumentType(qualifiedName)
@@ -769,7 +769,6 @@ def write_xml_to_disk(article_xml, filename, output_dir=None):
         fp.write(article_xml.output_xml())
 
 
-
 def build_article_from_csv(article_id, jats_config=None):
     "build article objects populated with csv data"
     if not jats_config:
@@ -778,12 +777,13 @@ def build_article_from_csv(article_id, jats_config=None):
     if article:
         return article
     else:
-        logger.warning("the following article did not have enough components and " +
+        LOGGER.warning("the following article did not have enough components and " +
                        "xml was not generated " + str(article_id))
-        logger.warning("warning count was " + str(error_count))
+        LOGGER.warning("warning count was " + str(error_count))
         if len(error_messages) > 0:
-            logger.warning(", ".join(error_messages))
+            LOGGER.warning(", ".join(error_messages))
         return False
+
 
 def build_xml(article_id, article=None, jats_config=None, add_comment=True):
     "generate xml from an article object"
@@ -792,12 +792,17 @@ def build_xml(article_id, article=None, jats_config=None, add_comment=True):
 
     if not article:
         article = build_article_from_csv(article_id, jats_config)
-    try:
-        article_xml = ArticleXML(article, jats_config, add_comment)
-        logger.info("generated xml for " + str(article_id))
+        if not hasattr(article, 'manuscript'):
+            LOGGER.info("could not build article for " + str(article_id))
+            return None
+
+    article_xml = ArticleXML(article, jats_config, add_comment)
+    if hasattr(article_xml, 'root'):
+        LOGGER.info("generated xml for " + str(article_id))
         return article_xml
-    except:
+    else:
         return None
+
 
 def build_xml_to_disk(article_id, article=None, jats_config=None, add_comment=True):
     "generate xml from an article object and write to disk"
@@ -806,16 +811,17 @@ def build_xml_to_disk(article_id, article=None, jats_config=None, add_comment=Tr
     if not article:
         article = build_article_from_csv(article_id, jats_config)
     article_xml = build_xml(article_id, article, jats_config, add_comment)
-    if article_xml:
+    if article_xml and hasattr(article_xml, 'root'):
         filename = jats_config.get("xml_filename_pattern").format(
             manuscript=article.manuscript)
         try:
             output_dir = jats_config.get("target_output_dir")
             write_xml_to_disk(article_xml, filename, output_dir)
-            logger.info("xml written for " + str(article_id))
+            LOGGER.info("xml written for " + str(article_id))
             print("written " + str(article_id))
             return True
-        except:
-            logger.error("could not write xml for " + str(article_id))
+        except IOError:
+            LOGGER.error("could not write xml for " + str(article_id))
             return False
+    LOGGER.error("could not generate xml to disk for " + str(article_id))
     return False
