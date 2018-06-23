@@ -222,7 +222,9 @@ class TestGenerate(unittest.TestCase):
         article.display_channel = None
         article.article_categories = []
         article_xml = generate.build_xml(article_id, article)
-        article_xml.set_kwd_group_author_keywords(article_xml.article_meta, article)
+        front = article_xml.set_frontmatter(article_xml.root, article)
+        article_meta = article_xml.set_article_meta(front, article)
+        article_xml.set_kwd_group_author_keywords(article_meta, article)
         self.assertTrue(
             '<kwd-group kwd-group-type="author-keywords">' in article_xml.output_xml().decode('utf8'))
 
