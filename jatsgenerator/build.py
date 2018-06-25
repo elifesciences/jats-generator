@@ -3,6 +3,15 @@ from elifearticle import utils as eautils
 from jatsgenerator import utils
 
 
+def set_journal_title_group(parent, journal_title):
+    # journal-title-group
+    journal_title_group = SubElement(parent, "journal-title-group")
+
+    # journal-title
+    journal_title_tag = SubElement(journal_title_group, "journal-title")
+    journal_title_tag.text = journal_title
+
+
 def set_fn_group_competing_interest(parent, poa_article):
     competing_interest = SubElement(parent, "fn-group")
     competing_interest.set("content-type", "competing-interest")
@@ -157,6 +166,14 @@ def set_title_group(parent, poa_article):
     root_xml_element = Element(root_tag_name)
     new_tag = utils.append_to_tag(root_xml_element, tag_name, poa_article.title)
     parent.append(new_tag)
+
+
+def set_history(parent, poa_article, date_types):
+    history = SubElement(parent, "history")
+    for date_type in date_types:
+        date = poa_article.get_date(date_type)
+        if date:
+            set_date(history, poa_article, date_type)
 
 
 def set_license(parent, poa_article):

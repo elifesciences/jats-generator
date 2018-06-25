@@ -148,7 +148,8 @@ class ArticleXML(object):
             elocation_id.text = "e" + str(int(poa_article.manuscript)).zfill(5)
 
         if poa_article.dates:
-            self.set_history(article_meta, poa_article)
+            build.set_history(article_meta, poa_article,
+                              self.jats_config.get('history_date_types'))
 
         if poa_article.license:
             build.set_permissions(article_meta, poa_article)
@@ -195,18 +196,6 @@ class ArticleXML(object):
             self.context.dataro_num += 1
             build.set_dataset(p_tag, dataset, self.context.dataro_num, specific_use)
 
-    def set_journal_title_group(self, parent):
-        """
-        take boiler plate values from the init of the class
-        """
-
-        # journal-title-group
-        journal_title_group = SubElement(parent, "journal-title-group")
-
-        # journal-title
-        journal_title = SubElement(journal_title_group, "journal-title")
-        journal_title.text = self.jats_config.get('journal_title')
-
     def set_journal_meta(self, parent):
         """
         take boiler plate values from the init of the class
@@ -223,7 +212,7 @@ class ArticleXML(object):
                 journal_id.set("journal-id-type", journal_id_type)
                 journal_id.text = journal_id_value
         #
-        self.set_journal_title_group(journal_meta)
+        build.set_journal_title_group(journal_meta, self.jats_config.get('journal_title'))
 
         # title-group
         issn = SubElement(journal_meta, "issn")
@@ -339,14 +328,6 @@ class ArticleXML(object):
             for key, value in self.context.author_affs.items():
                 aff_id = "aff" + str(key)
                 build.set_aff(contrib_group, value, contrib_type, aff_id)
-
-    def set_history(self, parent, poa_article):
-        history = SubElement(parent, "history")
-
-        for date_type in self.jats_config.get('history_date_types'):
-            date = poa_article.get_date(date_type)
-            if date:
-                build.set_date(history, poa_article, date_type)
 
     def output_xml(self, pretty=False, indent=""):
         public_id = ('-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange ' +
