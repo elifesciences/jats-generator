@@ -5,13 +5,12 @@ import os
 from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.etree import ElementTree
 from xml.dom import minidom
-from jatsgenerator.conf import raw_config, parse_raw_config
-from jatsgenerator import utils
 from elifetools import xmlio
 from elifearticle import utils as eautils
 from elifearticle.article import Article
 import ejpcsvparser.parse as parse
-
+from jatsgenerator.conf import raw_config, parse_raw_config
+from jatsgenerator import utils
 
 LOGGER = logging.getLogger('xml_gen')
 HDLR = logging.FileHandler('xml_gen.log')
