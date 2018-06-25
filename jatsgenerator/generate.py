@@ -778,8 +778,8 @@ def build_article_from_csv(article_id, jats_config=None):
         return article
     else:
         LOGGER.warning("the following article did not have enough components and " +
-                       "xml was not generated " + str(article_id))
-        LOGGER.warning("warning count was " + str(error_count))
+                       "xml was not generated %s", article_id)
+        LOGGER.warning("warning count was %s", error_count)
         if error_messages:
             LOGGER.warning(", ".join(error_messages))
         return False
@@ -793,12 +793,12 @@ def build_xml(article_id, article=None, jats_config=None, add_comment=True):
     if not article:
         article = build_article_from_csv(article_id, jats_config)
         if not hasattr(article, 'manuscript'):
-            LOGGER.info("could not build article for " + str(article_id))
+            LOGGER.info("could not build article for %s", article_id)
             return None
 
     article_xml = ArticleXML(article, jats_config, add_comment)
     if hasattr(article_xml, 'root'):
-        LOGGER.info("generated xml for " + str(article_id))
+        LOGGER.info("generated xml for %s", article_id)
         return article_xml
     return None
 
@@ -816,11 +816,11 @@ def build_xml_to_disk(article_id, article=None, jats_config=None, add_comment=Tr
         try:
             output_dir = jats_config.get("target_output_dir")
             write_xml_to_disk(article_xml, filename, output_dir)
-            LOGGER.info("xml written for " + str(article_id))
+            LOGGER.info("xml written for %s", article_id)
             print("written " + str(article_id))
             return True
         except IOError:
-            LOGGER.error("could not write xml for " + str(article_id))
+            LOGGER.error("could not write xml for %s", article_id)
             return False
-    LOGGER.error("could not generate xml to disk for " + str(article_id))
+    LOGGER.error("could not generate xml to disk for %s", article_id)
     return False
