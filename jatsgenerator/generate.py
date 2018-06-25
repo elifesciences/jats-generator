@@ -243,6 +243,50 @@ class ArticleXML(object):
 
         return aff_id
 
+    def set_contrib(self, parent, poa_article, contributor, contrib_type=None):
+        contrib_tag = SubElement(parent, "contrib")
+
+        contrib_tag.set("contrib-type", contributor.contrib_type)
+        if contributor.corresp is True:
+            contrib_tag.set("corresp", "yes")
+        if contributor.equal_contrib is True:
+            contrib_tag.set("equal_contrib", "yes")
+        if contributor.auth_id:
+            contrib_tag.set("id", "author-" + str(contributor.auth_id))
+
+        build.set_contrib_name(contrib_tag, contributor)
+        build.set_contrib_role(contrib_tag, contrib_type)
+        build.set_contrib_orcid(contrib_tag, contributor)
+
+        for affiliation in contributor.affiliations:
+            if contrib_type != "editor":
+                aff_id = self.get_aff_id(affiliation)
+                rid = "aff" + str(aff_id)
+                xref_tag = SubElement(contrib_tag, "xref")
+                xref_tag.set("ref-type", "aff")
+                xref_tag.set("rid", rid)
+                xref_tag.text = str(aff_id)
+            else:
+                # For editors add an inline aff tag
+                build.set_aff(contrib_tag, affiliation, contrib_type, aff_id=None)
+
+        if contributor.corresp is True:
+            self.context.corresp_count += 1
+            corresp_rid = "cor" + str(self.context.corresp_count)
+            build.set_contrib_corresp(contrib_tag, corresp_rid)
+
+        # Funding award group xref tags
+        build.set_contrib_funding(contrib_tag, poa_article, contributor)
+
+        # Contributor conflict xref tag logic
+        conflict_rid = None
+        if contributor.conflict:
+            self.context.conflict_count += 1
+            conflict_rid = "conf" + str(self.context.conflict_count)
+        elif poa_article.conflict_default:
+            conflict_rid = "conf1"
+        build.set_contrib_conflict(contrib_tag, contrib_type, conflict_rid)
+
     def set_contrib_group(self, parent, poa_article, contrib_type=None):
         # If contrib_type is None, all contributors will be added regardless of their type
         contrib_group = SubElement(parent, "contrib-group")
@@ -255,73 +299,7 @@ class ArticleXML(object):
                 if contributor.contrib_type != contrib_type:
                     continue
 
-            contrib_tag = SubElement(contrib_group, "contrib")
-
-            contrib_tag.set("contrib-type", contributor.contrib_type)
-            if contributor.corresp is True:
-                contrib_tag.set("corresp", "yes")
-            if contributor.equal_contrib is True:
-                contrib_tag.set("equal_contrib", "yes")
-            if contributor.auth_id:
-                contrib_tag.set("id", "author-" + str(contributor.auth_id))
-
-            if contributor.collab:
-                collab_tag = SubElement(contrib_tag, "collab")
-                collab_tag.text = contributor.collab
-            else:
-                build.set_name(contrib_tag, contributor)
-
-            if contrib_type == "editor":
-                role_tag = SubElement(contrib_tag, "role")
-                role_tag.text = "Reviewing editor"
-
-            if contributor.orcid:
-                orcid_tag = SubElement(contrib_tag, "contrib-id")
-                orcid_tag.set("contrib-id-type", "orcid")
-                orcid_tag.text = "http://orcid.org/" + contributor.orcid
-
-            for affiliation in contributor.affiliations:
-                if contrib_type != "editor":
-                    aff_id = self.get_aff_id(affiliation)
-                    rid = "aff" + str(aff_id)
-                    xref_tag = SubElement(contrib_tag, "xref")
-                    xref_tag.set("ref-type", "aff")
-                    xref_tag.set("rid", rid)
-                    xref_tag.text = str(aff_id)
-                else:
-                    # For editors add an inline aff tag
-                    build.set_aff(contrib_tag, affiliation, contrib_type, aff_id=None)
-
-            # Corresponding author xref tag logic
-            if contributor.corresp is True:
-                self.context.corresp_count += 1
-                rid = "cor" + str(self.context.corresp_count)
-                xref_tag = SubElement(contrib_tag, "xref")
-                xref_tag.set("ref-type", "corresp")
-                xref_tag.set("rid", rid)
-                xref_tag.text = "*"
-
-            # Funding award group xref tags
-            for par_id in build.get_contrib_par_ids(poa_article, contributor.auth_id):
-                xref_tag = SubElement(contrib_tag, "xref")
-                xref_tag.set("ref-type", "other")
-                xref_tag.set("rid", par_id)
-
-            # Contributor conflict xref tag logic
-            if contributor.conflict:
-                self.context.conflict_count += 1
-                rid = "conf" + str(self.context.conflict_count)
-            elif poa_article.conflict_default:
-                rid = "conf1"
-            else:
-                rid = None
-
-            # Contrib conflict xref
-            if contrib_type != "editor":
-                if rid:
-                    xref_tag = SubElement(contrib_tag, "xref")
-                    xref_tag.set("ref-type", "fn")
-                    xref_tag.set("rid", rid)
+            self.set_contrib(contrib_group, poa_article, contributor, contrib_type)
 
         # Add the aff tags
         if contrib_type != "editor":

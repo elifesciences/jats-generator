@@ -74,6 +74,50 @@ def set_name(parent, contributor):
     given_name.text = contributor.given_name
 
 
+def set_contrib_name(parent, contributor):
+    if contributor.collab:
+        collab_tag = SubElement(parent, "collab")
+        collab_tag.text = contributor.collab
+    else:
+        set_name(parent, contributor)
+
+
+def set_contrib_role(parent, contrib_type):
+    if contrib_type == "editor":
+        role_tag = SubElement(parent, "role")
+        role_tag.text = "Reviewing editor"
+
+
+def set_contrib_orcid(parent, contributor):
+    if contributor.orcid:
+        orcid_tag = SubElement(parent, "contrib-id")
+        orcid_tag.set("contrib-id-type", "orcid")
+        orcid_tag.text = "http://orcid.org/" + contributor.orcid
+
+
+def set_contrib_corresp(parent, rid):
+    # Corresponding author xref tag logic
+    xref_tag = SubElement(parent, "xref")
+    xref_tag.set("ref-type", "corresp")
+    xref_tag.set("rid", rid)
+    xref_tag.text = "*"
+
+
+def set_contrib_funding(parent, poa_article, contributor):
+    for par_id in get_contrib_par_ids(poa_article, contributor.auth_id):
+        xref_tag = SubElement(parent, "xref")
+        xref_tag.set("ref-type", "other")
+        xref_tag.set("rid", par_id)
+
+
+def set_contrib_conflict(parent, contrib_type, rid):
+    # Contrib conflict xref
+    if rid and contrib_type and contrib_type != "editor":
+        xref_tag = SubElement(parent, "xref")
+        xref_tag.set("ref-type", "fn")
+        xref_tag.set("rid", rid)
+
+
 def set_aff(parent, affiliation, contrib_type, aff_id=None):
     aff = SubElement(parent, "aff")
 
