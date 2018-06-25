@@ -91,9 +91,9 @@ class ArticleXML(object):
         info_sec_title.text = "Additional information"
         if poa_article.has_contributor_conflict() or poa_article.conflict_default:
             self.set_fn_group_competing_interest(info_sec, poa_article)
-        if len(poa_article.ethics) > 0:
+        if poa_article.ethics:
             self.set_fn_group_ethics_information(info_sec, poa_article)
-        if len(poa_article.datasets) > 0 or poa_article.data_availability:
+        if poa_article.datasets or poa_article.data_availability:
             supp_sec = self.set_section(back, "supplementary-material")
             supp_sec_title = SubElement(supp_sec, "title")
             supp_sec_title.text = "Additional Files"
@@ -209,10 +209,10 @@ class ArticleXML(object):
             self.set_kwd_group_author_keywords(article_meta, poa_article)
         """
 
-        if len(poa_article.research_organisms) > 0:
+        if poa_article.research_organisms:
             self.set_kwd_group_research_organism(article_meta, poa_article)
 
-        if len(poa_article.funding_awards) > 0 or poa_article.funding_note:
+        if poa_article.funding_awards or poa_article.funding_note:
             self.set_funding_group(article_meta, poa_article)
 
         return article_meta
@@ -220,9 +220,9 @@ class ArticleXML(object):
     def set_article_datasets(self, parent, poa_article):
         self.set_article_datasets_header(parent)
         self.set_data_availability(parent, poa_article)
-        if len(poa_article.get_datasets("datasets")) > 0:
+        if poa_article.get_datasets("datasets"):
             self.set_major_datasets(parent, poa_article)
-        if len(poa_article.get_datasets("prev_published_datasets")) > 0:
+        if poa_article.get_datasets("prev_published_datasets"):
             self.set_previously_published_datasets(parent, poa_article)
 
     def set_article_datasets_header(self, parent):
@@ -261,7 +261,7 @@ class ArticleXML(object):
         if specific_use:
             element_citation_tag.set('specific-use', specific_use)
 
-        if len(dataset.authors) > 0:
+        if dataset.authors:
             person_group_tag = SubElement(element_citation_tag, "person-group")
             person_group_tag.set("person-group-type", "author")
             for author in dataset.authors:
@@ -658,7 +658,7 @@ class ArticleXML(object):
         for award_id in award.award_ids:
             award_id_tag = SubElement(award_group, "award-id")
             award_id_tag.text = award_id
-        if len(award.principal_award_recipients) > 0:
+        if award.principal_award_recipients:
             self.set_principal_award_recipients(award_group, award)
 
     def set_funding_source(self, parent, institution_id, institution_name):
@@ -784,7 +784,7 @@ def build_article_from_csv(article_id, jats_config=None):
         LOGGER.warning("the following article did not have enough components and " +
                        "xml was not generated " + str(article_id))
         LOGGER.warning("warning count was " + str(error_count))
-        if len(error_messages) > 0:
+        if error_messages:
             LOGGER.warning(", ".join(error_messages))
         return False
 
