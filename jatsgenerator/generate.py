@@ -203,10 +203,8 @@ class ArticleXML(object):
         self.set_abstract(article_meta, poa_article)
 
         # Disabled author keywords from inclusion Oct 2, 2015
-        """
-        if len(poa_article.author_keywords) > 0:
-            self.set_kwd_group_author_keywords(article_meta, poa_article)
-        """
+        # if len(poa_article.author_keywords) > 0:
+        #     self.set_kwd_group_author_keywords(article_meta, poa_article)
 
         if poa_article.research_organisms:
             self.set_kwd_group_research_organism(article_meta, poa_article)
@@ -760,8 +758,7 @@ class ArticleXML(object):
 
         if pretty is True:
             return reparsed.toprettyxml(indent, encoding=encoding)
-        else:
-            return reparsed.toxml(encoding=encoding)
+        return reparsed.toxml(encoding=encoding)
 
 
 def write_xml_to_disk(article_xml, filename, output_dir=None):
@@ -803,8 +800,7 @@ def build_xml(article_id, article=None, jats_config=None, add_comment=True):
     if hasattr(article_xml, 'root'):
         LOGGER.info("generated xml for " + str(article_id))
         return article_xml
-    else:
-        return None
+    return None
 
 
 def build_xml_to_disk(article_id, article=None, jats_config=None, add_comment=True):
