@@ -215,18 +215,6 @@ class TestGenerate(unittest.TestCase):
         # now it should have no <article-categories> section at all
         self.assertTrue('<article-categories>' not in article_xml.output_xml().decode('utf8'))
 
-    def test_author_keywords(self):
-        "test setting author keywords which is currently disabled"
-        article_id = 7
-        article = generate.build_article_from_csv(article_id)
-        article.display_channel = None
-        article.article_categories = []
-        article_xml = generate.build_xml(article_id, article)
-        front = article_xml.set_frontmatter(article_xml.root, article)
-        article_meta = article_xml.set_article_meta(front, article)
-        article_xml.set_kwd_group_author_keywords(article_meta, article)
-        self.assertTrue(
-            '<kwd-group kwd-group-type="author-keywords">' in article_xml.output_xml().decode('utf8'))
 
 if __name__ == '__main__':
     unittest.main()
