@@ -20,6 +20,22 @@ LOGGER.addHandler(HDLR)
 LOGGER.setLevel(logging.INFO)
 
 
+class ArticleBuildContext(object):
+    "keep track of iterators and properties when building an ArticleXML object"
+    def __init__(self):
+        # sec section counter
+        self.sec_count = 0
+        # dataset counter
+        self.dataro_num = 0
+        # corresponding author count, incremented when printing corresp xref
+        self.corresp_count = 0
+        # author aff count, and dict of author affiliations by index
+        self.author_aff_count = 0
+        self.author_affs = {}
+        # contributor conflict count, incremented when printing contrib xref
+        self.conflict_count = 0
+
+
 class ArticleXML(object):
 
     def __init__(self, poa_article, jats_config, add_comment=True):
@@ -33,6 +49,10 @@ class ArticleXML(object):
 
         # Set the config
         self.jats_config = jats_config
+
+        # Track the build context
+        self.context = ArticleBuildContext()
+
         # Create the root XML node
         self.root = Element('article')
 
@@ -51,24 +71,9 @@ class ArticleXML(object):
                               ' from version ' + last_commit)
             self.root.append(comment)
 
-        # contributor conflict count, incremented when printing contrib xref
-        self.conflict_count = 0
         if poa_article.conflict_default:
             # conf1 is reserved for the default conflict value, so increment now
-            self.conflict_count += 1
-
-        # sec section counter
-        self.sec_count = 0
-
-        # dataset counter
-        self.dataro_num = 0
-
-        # corresponding author count, incremented when printing corresp xref
-        self.corresp_count = 0
-
-        # author aff count, and dict of author affiliations by index
-        self.author_aff_count = 0
-        self.author_affs = {}
+            self.context.conflict_count += 1
 
         self.build(self.root, poa_article)
 
@@ -100,9 +105,9 @@ class ArticleXML(object):
             self.set_article_datasets(data_sec, poa_article)
 
     def set_section(self, parent, sec_type):
-        self.sec_count = self.sec_count + 1
+        self.context.sec_count += 1
         sec = SubElement(parent, "sec")
-        sec.set("id", "s" + str(self.sec_count))
+        sec.set("id", "s" + str(self.context.sec_count))
         sec.set("sec-type", sec_type)
         return sec
 
@@ -238,8 +243,8 @@ class ArticleXML(object):
         specific_use = "isSupplementedBy"
         # Datasets
         for dataset in poa_article.get_datasets("datasets"):
-            self.dataro_num = self.dataro_num + 1
-            self.set_dataset(p_tag, dataset, self.dataro_num, specific_use)
+            self.context.dataro_num += 1
+            self.set_dataset(p_tag, dataset, self.context.dataro_num, specific_use)
 
     def set_previously_published_datasets(self, parent, poa_article):
         p_tag = SubElement(parent, "p")
@@ -248,8 +253,8 @@ class ArticleXML(object):
         specific_use = "references"
         # Datasets
         for dataset in poa_article.get_datasets("prev_published_datasets"):
-            self.dataro_num = self.dataro_num + 1
-            self.set_dataset(p_tag, dataset, self.dataro_num, specific_use)
+            self.context.dataro_num += 1
+            self.set_dataset(p_tag, dataset, self.context.dataro_num, specific_use)
 
     def set_dataset(self, parent, dataset, dataro_num, specific_use=None):
         element_citation_tag = SubElement(parent, "element-citation")
@@ -414,13 +419,13 @@ class ArticleXML(object):
         """
         aff_id = None
 
-        for key, value in self.author_affs.items():
+        for key, value in self.context.author_affs.items():
             if self.compare_aff(affiliation, value):
                 aff_id = key
         if not aff_id:
-            self.author_aff_count += 1
-            aff_id = self.author_aff_count
-            self.author_affs[aff_id] = affiliation
+            self.context.author_aff_count += 1
+            aff_id = self.context.author_aff_count
+            self.context.author_affs[aff_id] = affiliation
 
         return aff_id
 
@@ -497,8 +502,8 @@ class ArticleXML(object):
 
             # Corresponding author xref tag logic
             if contributor.corresp is True:
-                self.corresp_count += 1
-                rid = "cor" + str(self.corresp_count)
+                self.context.corresp_count += 1
+                rid = "cor" + str(self.context.corresp_count)
                 xref_tag = SubElement(contrib_tag, "xref")
                 xref_tag.set("ref-type", "corresp")
                 xref_tag.set("rid", rid)
@@ -512,8 +517,8 @@ class ArticleXML(object):
 
             # Contributor conflict xref tag logic
             if contributor.conflict:
-                rid = "conf" + str(self.conflict_count + 1)
-                self.conflict_count += 1
+                self.context.conflict_count += 1
+                rid = "conf" + str(self.context.conflict_count)
             elif poa_article.conflict_default:
                 rid = "conf1"
             else:
@@ -528,7 +533,7 @@ class ArticleXML(object):
 
         # Add the aff tags
         if contrib_type != "editor":
-            for key, value in self.author_affs.items():
+            for key, value in self.context.author_affs.items():
                 aff_id = "aff" + str(key)
                 self.set_aff(contrib_group, value, contrib_type, aff_id)
 
