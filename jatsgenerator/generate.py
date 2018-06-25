@@ -353,9 +353,9 @@ class ArticleXML(object):
     def set_copyright(self, parent, poa_article):
         # Count authors (non-editors)
         non_editor = []
-        for c in poa_article.contributors:
-            if c.contrib_type != "editor":
-                non_editor.append(c)
+        for contributor in poa_article.contributors:
+            if contributor.contrib_type != "editor":
+                non_editor.append(contributor)
 
         if len(non_editor) > 2:
             contributor = non_editor[0]
@@ -744,14 +744,14 @@ class ArticleXML(object):
                 self.set_date(history, poa_article, date_type)
 
     def output_xml(self, pretty=False, indent=""):
-        publicId = ('-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange ' +
-                    'DTD v1.1d3 20150301//EN')
-        systemId = 'JATS-archivearticle1.dtd'
+        public_id = ('-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange ' +
+                     'DTD v1.1d3 20150301//EN')
+        system_id = 'JATS-archivearticle1.dtd'
         encoding = 'utf-8'
-        qualifiedName = "article"
+        qualified_name = "article"
 
-        doctype = xmlio.ElifeDocumentType(qualifiedName)
-        doctype._identified_mixin_init(publicId, systemId)
+        doctype = xmlio.ElifeDocumentType(qualified_name)
+        doctype._identified_mixin_init(public_id, system_id)
 
         rough_string = ElementTree.tostring(self.root, encoding)
         reparsed = minidom.parseString(rough_string)
@@ -768,8 +768,8 @@ def write_xml_to_disk(article_xml, filename, output_dir=None):
     filename_path = filename
     if output_dir:
         filename_path = output_dir + os.sep + filename
-    with open(filename_path, "wb") as fp:
-        fp.write(article_xml.output_xml())
+    with open(filename_path, "wb") as open_file:
+        open_file.write(article_xml.output_xml())
 
 
 def build_article_from_csv(article_id, jats_config=None):
