@@ -2,25 +2,35 @@ import unittest
 import time
 import os
 from mock import Mock, patch
-from jatsgenerator import generate
 from elifearticle.article import ArticleDate
+from ejpcsvparser import csv_data
+from jatsgenerator import generate
+from jatsgenerator.generate import ArticleXML
 from jatsgenerator.conf import raw_config, parse_raw_config
 
 TEST_BASE_PATH = os.path.dirname(os.path.abspath(__file__)) + os.sep
 TEST_DATA_PATH = TEST_BASE_PATH + "test_data" + os.sep
 TARGET_OUTPUT_DIR = TEST_BASE_PATH + "tmp" + os.sep
 
+
 def read_file_content(file_name):
-    fp = open(file_name, 'rb')
-    content = fp.read()
-    fp.close()
+    with open(file_name, 'rb') as open_file:
+        content = open_file.read()
     return content
+
+
+def build_config(config_section):
+    "build the config and override the output directory"
+    jats_config = parse_raw_config(raw_config(config_section))
+    jats_config['target_output_dir'] = TARGET_OUTPUT_DIR
+    return jats_config
+
 
 class TestGenerate(unittest.TestCase):
 
     def setUp(self):
         # override settings
-        generate.data.CSV_PATH = TEST_DATA_PATH
+        csv_data.CSV_PATH = TEST_DATA_PATH
         self.passes = []
         self.default_pub_date = time.strptime("2012-11-13", "%Y-%m-%d")
         self.passes.append((3, 'elife', self.default_pub_date, 1, 'elife_poa_e00003.xml'))
@@ -33,16 +43,10 @@ class TestGenerate(unittest.TestCase):
         self.passes.append((14997, 'elife', None, None, 'elife_poa_e14997.xml'))
         self.passes.append((21598, 'elife', None, None, 'elife_poa_e21598.xml'))
 
-    def build_config(self, config_section):
-        "build the config and override the output directory"
-        jats_config = parse_raw_config(raw_config(config_section))
-        jats_config['target_output_dir'] = TARGET_OUTPUT_DIR
-        return jats_config
-
     def test_build_xml_from_csv(self):
         "set of tests building csv into xml and compare the output"
         for (article_id, config_section, pub_date, volume, expected_xml_file) in self.passes:
-            jats_config = self.build_config(config_section)
+            jats_config = build_config(config_section)
             article = generate.build_article_from_csv(article_id, jats_config)
             self.assertIsNotNone(article, "count not build article from csv")
             # add the pub_date
@@ -56,7 +60,7 @@ class TestGenerate(unittest.TestCase):
             xml_return_value = generate.build_xml_to_disk(
                 article_id, article, jats_config, add_comment=False)
             self.assertTrue(xml_return_value,
-                            "count not generate xml for the article {article_id}".format(
+                            "could not generate xml to disk for {article_id}".format(
                                 article_id=article_id))
             generated_xml = read_file_content(TARGET_OUTPUT_DIR + expected_xml_file)
             model_xml = read_file_content(TEST_DATA_PATH + expected_xml_file)
@@ -73,6 +77,18 @@ class TestGenerate(unittest.TestCase):
         article_id = 99999
         return_value = generate.build_xml(article_id)
         self.assertIsNone(return_value)
+
+    def test_build_xml_failure_bad_article(self):
+        "test building article xml from a bad article object"
+        article_id = 99999
+        article = True
+        article_xml = generate.build_xml(article_id, article)
+        self.assertFalse(hasattr(article_xml, 'root'))
+
+    def test_article_xml_instantiate_failure(self):
+        "test ArticleXML object with bad data"
+        article_xml = ArticleXML(None, None)
+        self.assertFalse(hasattr(article_xml, 'root'))
 
     @patch('jatsgenerator.generate.write_xml_to_disk')
     def test_build_xml_to_disk_failure(self, fake_writer):
@@ -107,9 +123,10 @@ class TestGenerate(unittest.TestCase):
         # test the value as is with more than two authors
         article_xml = generate.build_xml(article_id, article)
         self.assertTrue(
-            '<copyright-holder>Schuman et al</copyright-holder>' in article_xml.output_xml().decode('utf8'))
+            '<copyright-holder>Schuman et al</copyright-holder>' in
+            article_xml.output_xml().decode('utf8'))
         # set authors to be exactly two
-        for index, author in enumerate(article.contributors):
+        for index in range(len(article.contributors)-1):
             if index > 1:
                 del article.contributors[index]
         article_xml = generate.build_xml(article_id, article)
@@ -117,12 +134,13 @@ class TestGenerate(unittest.TestCase):
             '<copyright-holder>Schuman &amp; Barthel</copyright-holder>'
             in article_xml.output_xml().decode('utf8'))
         # set authors to be exactly one
-        for index, author in enumerate(article.contributors):
+        for index in range(len(article.contributors)-1):
             if index > 0:
                 del article.contributors[index]
         article_xml = generate.build_xml(article_id, article)
         self.assertTrue(
-            '<copyright-holder>Schuman</copyright-holder>' in article_xml.output_xml().decode('utf8'))
+            '<copyright-holder>Schuman</copyright-holder>' in
+            article_xml.output_xml().decode('utf8'))
         # no authors
         article.contributors = []
         article_xml = generate.build_xml(article_id, article)
@@ -140,14 +158,15 @@ class TestGenerate(unittest.TestCase):
         accepted_date_object = ArticleDate("pub", accepted_date)
         article.dates['accepted'] = accepted_date_object
         article_xml = generate.build_xml(article_id, article)
-        self.assertTrue('<copyright-year>2037</copyright-year>' in article_xml.output_xml().decode('utf8'))
+        self.assertTrue('<copyright-year>2037</copyright-year>' in
+                        article_xml.output_xml().decode('utf8'))
 
     def test_contributor_equal_contrib(self):
         "set equal_contrib on an author to test the output"
         article_id = 7
         article = generate.build_article_from_csv(article_id)
         # set all the authors as equal contributors
-        for index, author in enumerate(article.contributors):
+        for author in article.contributors:
             if author.contrib_type == 'author':
                 author.equal_contrib = True
         article_xml = generate.build_xml(article_id, article)
@@ -179,7 +198,8 @@ class TestGenerate(unittest.TestCase):
         article.display_channel = None
         article_xml = generate.build_xml(article_id, article)
         self.assertTrue(
-            '<subj-group subj-group-type="display-channel">' not in article_xml.output_xml().decode('utf8'))
+            '<subj-group subj-group-type="display-channel">' not in
+            article_xml.output_xml().decode('utf8'))
 
     def test_do_subject_heading(self):
         "test when the article_categories is empty"
@@ -200,16 +220,6 @@ class TestGenerate(unittest.TestCase):
         # now it should have no <article-categories> section at all
         self.assertTrue('<article-categories>' not in article_xml.output_xml().decode('utf8'))
 
-    def test_author_keywords(self):
-        "test setting author keywords which is currently disabled"
-        article_id = 7
-        article = generate.build_article_from_csv(article_id)
-        article.display_channel = None
-        article.article_categories = []
-        article_xml = generate.build_xml(article_id, article)
-        article_xml.set_kwd_group_author_keywords(article_xml.article_meta, article)
-        self.assertTrue(
-            '<kwd-group kwd-group-type="author-keywords">' in article_xml.output_xml().decode('utf8'))
 
 if __name__ == '__main__':
     unittest.main()

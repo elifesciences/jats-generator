@@ -6,10 +6,12 @@ BOOLEAN_VALUES = []
 INT_VALUES = []
 LIST_VALUES = ['journal_id_types', 'contrib_types', 'history_date_types']
 
+
 def load_config(config_file=CONFIG_FILE):
     config = configparser.ConfigParser(interpolation=None)
     config.read(config_file)
     return config
+
 
 def raw_config(config_section, config_file=CONFIG_FILE):
     "try to load the config section"
@@ -19,17 +21,21 @@ def raw_config(config_section, config_file=CONFIG_FILE):
     # default
     return config.defaults()
 
+
 def boolean_config(config, value_name):
     "extract the value as a boolean"
     return config.getboolean(value_name)
+
 
 def int_config(config, value_name):
     "extract the value as an int"
     return config.getint(value_name)
 
+
 def list_config(config, value_name):
     "extract the value as a list parsed from JSON"
     return json.loads(config.get(value_name))
+
 
 def parse_raw_config(config):
     "parse the raw config to something good"
