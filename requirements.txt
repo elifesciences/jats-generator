@@ -1,4 +1,4 @@
-git+https://github.com/elifesciences/elife-tools.git@6c4f822ab8d1bed99c20da057a7907a6ad9a78ce#egg=elifetools
+git+https://github.com/elifesciences/elife-tools.git@5b57b1798788cc1c56077601df9a66e8de6a0239#egg=elifetools
 git+https://github.com/elifesciences/elife-article.git@653df6060f13e86d4561067c3bc48f4345bf2925#egg=elifearticle
 git+https://github.com/elifesciences/ejp-csv-parser.git@f1a6b7fff6bb93e3e22aceeb5fe5262b4c64692f#egg=ejpcsvparser
 GitPython==2.1.7
