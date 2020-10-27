@@ -72,6 +72,9 @@ def set_name(parent, contributor):
     surname.text = contributor.surname
     given_name = SubElement(name, "given-names")
     given_name.text = contributor.given_name
+    if contributor.suffix:
+        suffix = SubElement(name, "suffix")
+        suffix.text = contributor.suffix
 
 
 def set_contrib_name(parent, contributor):
