@@ -42,6 +42,7 @@ class TestGenerate(unittest.TestCase):
         self.passes.append((14874, 'elife', None, None, 'elife_poa_e14874.xml'))
         self.passes.append((14997, 'elife', None, None, 'elife_poa_e14997.xml'))
         self.passes.append((21598, 'elife', None, None, 'elife_poa_e21598.xml'))
+        self.passes.append((65697, 'elife', None, None, 'elife_poa_e65697.xml'))
 
     def test_build_xml_from_csv(self):
         "set of tests building csv into xml and compare the output"
