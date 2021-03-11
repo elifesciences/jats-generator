@@ -14,9 +14,9 @@ setup(
     packages=['jatsgenerator'],
     license='MIT',
     install_requires=[
-        "elifetools",
-        "elifearticle",
-        "ejpcsvparser",
+        "elifetools @ git+https://github.com/elifesciences/elife-tools",
+        "elifearticle @ git+https://github.com/elifesciences/elife-article",
+        "ejpcsvparser @ git+https://github.com/elifesciences/ejp-csv-parser",
         "GitPython",
         "configparser"
     ],
