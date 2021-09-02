@@ -3,30 +3,31 @@ from setuptools import setup
 
 import jatsgenerator
 
-with open('README.rst') as fp:
+with open("README.md") as fp:
     README = fp.read()
 
 setup(
-    name='jatsgenerator',
+    name="jatsgenerator",
     version=jatsgenerator.__version__,
-    description='JATS XML generator.',
+    description="JATS XML generator.",
     long_description=README,
-    packages=['jatsgenerator'],
-    license='MIT',
+    long_description_content_type="text/markdown",
+    packages=["jatsgenerator"],
+    license="MIT",
     install_requires=[
         "elifetools",
         "elifearticle",
         "ejpcsvparser",
         "GitPython",
-        "configparser"
+        "configparser",
     ],
-    url='https://github.com/elifesciences/jats-generator',
-    maintainer='eLife Sciences Publications Ltd.',
-    maintainer_email='tech-team@elifesciences.org',
+    url="https://github.com/elifesciences/jats-generator",
+    maintainer="eLife Sciences Publications Ltd.",
+    maintainer_email="tech-team@elifesciences.org",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        ]
-    )
+    ],
+)
