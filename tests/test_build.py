@@ -8,7 +8,6 @@ TEST_DATA_PATH = TEST_BASE_PATH + "test_data" + os.sep
 
 
 class TestBuild(unittest.TestCase):
-
     def setUp(self):
         # override settings
         csv_data.CSV_PATH = TEST_DATA_PATH
@@ -24,9 +23,6 @@ class TestBuild(unittest.TestCase):
         article_meta = article_xml.set_article_meta(front, article)
         build.set_kwd_group_author_keywords(article_meta, article)
         self.assertTrue(
-            '<kwd-group kwd-group-type="author-keywords">' in
-            article_xml.output_xml().decode('utf8'))
-
-
-if __name__ == '__main__':
-    unittest.main()
+            '<kwd-group kwd-group-type="author-keywords">'
+            in article_xml.output_xml().decode("utf8")
+        )

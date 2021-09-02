@@ -57,7 +57,7 @@ The `jatsgenerator.cfg` configuration file provided in this repository can be ch
 This library is meant to be integrated into another operational system, where the `elifearticle` objects can be populated with sufficient data to produce complete JATS XMl output, however the following is a simple example using interactive Python:
 
 
-```
+```python
 >>> from elifearticle.article import Article, Contributor
 >>> from jatsgenerator import generate
 >>> from jatsgenerator.conf import raw_config, parse_raw_config
@@ -72,7 +72,7 @@ This library is meant to be integrated into another operational system, where th
 
 The JATS XML output, pretty formatted, will look something like this:
 
-```
+```xml
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.1d3 20150301//EN"  "JATS-archivearticle1.dtd">
 <article article-type="research-article" dtd-version="1.1d3" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink">

@@ -31,9 +31,15 @@ def set_fn_group_competing_interest(parent, poa_article):
                 fn_tag = SubElement(competing_interest, "fn")
                 fn_tag.set("fn-type", "conflict")
                 fn_tag.set("id", conf_id)
-                tag_name = 'p'
-                conflict_text = (contributor.given_name + " " + contributor.surname +
-                                 ", " + conflict + ".")
+                tag_name = "p"
+                conflict_text = (
+                    contributor.given_name
+                    + " "
+                    + contributor.surname
+                    + ", "
+                    + conflict
+                    + "."
+                )
                 utils.append_to_tag(fn_tag, tag_name, conflict_text)
                 # increment
                 conflict_count = conflict_count + 1
@@ -41,7 +47,9 @@ def set_fn_group_competing_interest(parent, poa_article):
         # default for contributors with no conflicts
         if conflict_count > 1:
             # Change the default conflict text
-            conflict_text = "The other authors declare that no competing interests exist."
+            conflict_text = (
+                "The other authors declare that no competing interests exist."
+            )
         else:
             conflict_text = poa_article.conflict_default
         conf_id = "conf1"
@@ -166,16 +174,16 @@ def set_article_datasets_header(parent):
 
 def set_data_availability(parent, poa_article):
     if poa_article.data_availability:
-        tag_name = 'p'
+        tag_name = "p"
         utils.append_to_tag(parent, tag_name, poa_article.data_availability)
 
 
 def set_dataset(parent, dataset, dataro_num, specific_use=None):
     element_citation_tag = SubElement(parent, "element-citation")
-    element_citation_tag.set('id', 'dataset' + str(dataro_num))
-    element_citation_tag.set('publication-type', 'data')
+    element_citation_tag.set("id", "dataset" + str(dataro_num))
+    element_citation_tag.set("publication-type", "data")
     if specific_use:
-        element_citation_tag.set('specific-use', specific_use)
+        element_citation_tag.set("specific-use", specific_use)
 
     if dataset.authors:
         person_group_tag = SubElement(element_citation_tag, "person-group")
@@ -208,8 +216,8 @@ def set_title_group(parent, poa_article):
     """
     Allows the addition of XML tags
     """
-    root_tag_name = 'title-group'
-    tag_name = 'article-title'
+    root_tag_name = "title-group"
+    tag_name = "article-title"
     root_xml_element = Element(root_tag_name)
     new_tag = utils.append_to_tag(root_xml_element, tag_name, poa_article.title)
     parent.append(new_tag)
@@ -267,7 +275,7 @@ def set_copyright(parent, poa_article):
     if date:
         copyright_year = date.date.tm_year
 
-    copyright_statement = u'\u00a9 ' + str(copyright_year) + ", " + copyright_holder
+    copyright_statement = u"\u00a9 " + str(copyright_year) + ", " + copyright_holder
     copyright_tag = SubElement(parent, "copyright-statement")
     copyright_tag.text = copyright_statement
 
@@ -291,8 +299,8 @@ def set_abstract(parent, poa_article):
     """
     Allows the addition of XML tags
     """
-    root_tag_name = 'abstract'
-    tag_name = 'p'
+    root_tag_name = "abstract"
+    tag_name = "p"
     root_xml_element = Element(root_tag_name)
     new_tag = utils.append_to_tag(root_xml_element, tag_name, poa_article.abstract)
     parent.append(new_tag)
@@ -314,18 +322,23 @@ def get_contrib_par_ids(poa_article, auth_id):
 
 def compare_aff(aff1, aff2):
     # Compare two affiliations by comparing the object attributes
-    attrs = ['city', 'country', 'department', 'institution']
+    attrs = ["city", "country", "department", "institution"]
     for attr in attrs:
-        if (getattr(aff1, attr) and getattr(aff2, attr) and
-                getattr(aff1, attr) != getattr(aff2, attr)):
+        if (
+            getattr(aff1, attr)
+            and getattr(aff2, attr)
+            and getattr(aff1, attr) != getattr(aff2, attr)
+        ):
             return False
     return True
 
 
 def do_display_channel(poa_article):
     "decide whether to add a display-channel"
-    if (poa_article.get_display_channel() and
-            poa_article.get_display_channel().strip() != ''):
+    if (
+        poa_article.get_display_channel()
+        and poa_article.get_display_channel().strip() != ""
+    ):
         return True
     return False
 
@@ -339,7 +352,7 @@ def do_subject_heading(poa_article):
     "decide whether to add subject headings from article_categories"
     if poa_article.article_categories:
         for heading in poa_article.article_categories:
-            if heading and heading.strip() != '':
+            if heading and heading.strip() != "":
                 return True
     return False
 
@@ -359,7 +372,7 @@ def set_article_categories(parent, poa_article):
         if do_subject_heading(poa_article):
             for article_category in poa_article.article_categories:
                 # subj-group subj-group-type="heading"
-                if article_category and article_category.rstrip().lstrip() != '':
+                if article_category and article_category.rstrip().lstrip() != "":
                     subj_group = SubElement(article_categories, "subj-group")
                     subj_group.set("subj-group-type", "heading")
                     subject = SubElement(subj_group, "subject")
@@ -374,7 +387,7 @@ def set_kwd_group_research_organism(parent, poa_article):
     title.text = "Research organism"
     for research_organism in poa_article.research_organisms:
         parent_tag = kwd_group
-        tag_name = 'kwd'
+        tag_name = "kwd"
         utils.append_to_tag(parent_tag, tag_name, research_organism)
 
 
