@@ -1,10 +1,10 @@
-import configparser as configparser
+import configparser
 import json
 
-CONFIG_FILE = 'jatsgenerator.cfg'
+CONFIG_FILE = "jatsgenerator.cfg"
 BOOLEAN_VALUES = []
 INT_VALUES = []
-LIST_VALUES = ['journal_id_types', 'contrib_types', 'history_date_types']
+LIST_VALUES = ["journal_id_types", "contrib_types", "history_date_types"]
 
 
 def load_config(config_file=CONFIG_FILE):
