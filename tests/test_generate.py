@@ -1,6 +1,7 @@
 import unittest
 import time
 import os
+import sys
 from mock import Mock, patch
 from elifearticle.article import ArticleDate
 from ejpcsvparser import csv_data
@@ -76,6 +77,18 @@ class TestGenerate(unittest.TestCase):
             )
             generated_xml = read_file_content(TARGET_OUTPUT_DIR + expected_xml_file)
             model_xml = read_file_content(TEST_DATA_PATH + expected_xml_file)
+            if sys.version_info < (3, 8):
+                # pre-Python 3.8 the order of XML tag attributes are alphabetised
+                # research-article
+                model_xml = model_xml.replace(
+                    b'<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" article-type="research-article" dtd-version="1.1d3">',
+                    b'<article article-type="research-article" dtd-version="1.1d3" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink">',
+                )
+                # discussion
+                model_xml = model_xml.replace(
+                    b'<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" article-type="discussion" dtd-version="1.1d3">',
+                    b'<article article-type="discussion" dtd-version="1.1d3" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink">',
+                )
             self.assertEqual(generated_xml, model_xml)
 
     def test_build_article_from_csv_failure(self):
