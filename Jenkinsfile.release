@@ -12,6 +12,11 @@ elifePipeline {
         tag = elifePypiRelease()
         elifeGitTagRevision(tag)
     }
-    
+
+    stage 'Downstream', {
+        elifeMainlineOnly {
+            build job: '/dependencies/dependencies-elife-bot-update-dependency', parameters: [string(name: 'package', value: 'jatsgenerator'), string(name: 'tag', value: tag)], wait: false
+        }
+    }
 }
 
