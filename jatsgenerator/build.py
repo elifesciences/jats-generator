@@ -506,3 +506,26 @@ def set_corresp(parent, contributor, corresp_count):
         email_tag = SubElement(corresp, "email")
         email_tag.text = email
         email_tag.tail = " (" + initials + ");"
+
+
+def set_article_id(parent, article):
+    if article.doi:
+        doi_tag = SubElement(parent, "article-id")
+        doi_tag.set("pub-id-type", "doi")
+        doi_tag.text = article.doi
+
+
+def set_related_object(parent, article):
+    # add related-object link to Editor's evaluation
+    related_object_num = 1
+    for related_material in article.related_articles:
+        if related_material.ext_link_type and related_material.xlink_href:
+            related_object_tag = SubElement(parent, "related-object")
+            related_object_tag.set("id", "%sro%s" % (article.id, related_object_num))
+            related_object_tag.set("object-id-type", "id")
+            related_object_tag.set(
+                "object-id", utils.object_id_from_uri(related_material.xlink_href)
+            )
+            related_object_tag.set("link-type", related_material.ext_link_type)
+            related_object_tag.set("xlink:href", related_material.xlink_href)
+            related_object_num += 1
