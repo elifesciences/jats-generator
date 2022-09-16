@@ -275,7 +275,7 @@ def set_copyright(parent, poa_article):
     if date:
         copyright_year = date.date.tm_year
 
-    copyright_statement = u"\u00a9 " + str(copyright_year) + ", " + copyright_holder
+    copyright_statement = "\u00a9 " + str(copyright_year) + ", " + copyright_holder
     copyright_tag = SubElement(parent, "copyright-statement")
     copyright_tag.text = copyright_statement
 

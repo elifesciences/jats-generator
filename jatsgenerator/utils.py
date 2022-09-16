@@ -8,7 +8,7 @@ from elifetools import xmlio
 
 def tag_wrap(tag_name, content):
     """wrap the content with a tag of tag_name"""
-    return u"<{tag}>{content}</{tag}>".format(tag=tag_name, content=content)
+    return "<{tag}>{content}</{tag}>".format(tag=tag_name, content=content)
 
 
 def append_to_tag(parent, tag_name, string):
