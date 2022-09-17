@@ -529,3 +529,53 @@ def set_related_object(parent, article):
             related_object_tag.set("link-type", related_material.ext_link_type)
             related_object_tag.set("xlink:href", related_material.xlink_href)
             related_object_num += 1
+
+
+def set_body(parent, article):
+    "set body tag"
+    body_tag = SubElement(parent, "body")
+    if hasattr(article, "content_blocks") and article.content_blocks:
+        set_content_blocks(body_tag, article.content_blocks)
+    return body_tag
+
+
+# max level of recursion adding content blocks supported
+MAX_LEVEL = 5
+
+
+def set_content_blocks(parent, content_blocks, level=1):
+    "used when setting body content"
+    if level > MAX_LEVEL:
+        raise Exception("Maximum level of nested content blocks reached")
+    for block in content_blocks:
+        block_tag = None
+        if block.block_type in [
+            "boxed-text",
+            "disp-formula",
+            "disp-quote",
+            "fig",
+            "list",
+            "media",
+            "p",
+            "table-wrap",
+        ]:
+            # retain standard tag attributes as well as any specific ones from the block object
+            if block.content:
+                utils.append_to_tag(
+                    parent,
+                    block.block_type,
+                    block.content,
+                    utils.XML_NAMESPACE_MAP,
+                    attributes=block.attr_names(),
+                    attributes_text=block.attr_string(),
+                )
+                block_tag = parent[-1]
+            else:
+                # add empty tags too
+                block_tag = SubElement(parent, block.block_type)
+                block_tag.text = block.content
+                for key, value in block.attr.items():
+                    block_tag.set(key, value)
+        if block_tag is not None and block.content_blocks:
+            # recursion
+            set_content_blocks(block_tag, block.content_blocks, level + 1)
