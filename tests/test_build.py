@@ -1,5 +1,9 @@
 import unittest
 import os
+from collections import OrderedDict
+from xml.etree import ElementTree
+from xml.etree.ElementTree import Element
+from elifearticle.article import Article, ContentBlock, RelatedArticle
 from ejpcsvparser import csv_data
 from jatsgenerator import generate, build
 
@@ -26,3 +30,92 @@ class TestBuild(unittest.TestCase):
             '<kwd-group kwd-group-type="author-keywords">'
             in article_xml.output_xml().decode("utf8")
         )
+
+
+class TestSetTitleGroup(unittest.TestCase):
+    def test_set_title_group(self):
+        "test title-group and article-title tag"
+        root = Element("root")
+        article = Article(None, "Title")
+        build.set_title_group(root, article)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root><title-group><article-title>Title</article-title></title-group></root>"
+        self.assertEqual(xml_string, expected)
+
+
+class TestSetArticleId(unittest.TestCase):
+    def test_set_article_id(self):
+        "test setting article-id tag with doi value"
+        root = Element("root")
+        article = Article("10.7554/eLife.00666", "Title")
+        build.set_article_id(root, article)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b'<root><article-id pub-id-type="doi">10.7554/eLife.00666</article-id></root>'
+        self.assertEqual(xml_string, expected)
+
+
+class TestSetRelatedObject(unittest.TestCase):
+    def test_set_related_object(self):
+        "test setting article-id tag with doi value"
+        root = Element("root")
+        article = Article("10.7554/eLife.00666.sa0", "Evaluation summary")
+        article.id = "sa0"
+        related_article = RelatedArticle()
+        related_article.ext_link_type = "continued-by"
+        related_article.xlink_href = (
+            "https://sciety.org/articles/activity/10.1101/2021.11.09.467796"
+        )
+        article.related_articles = [related_article]
+
+        build.set_related_object(root, article)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = (
+            b"<root>"
+            b'<related-object id="sa0ro1" object-id-type="id" '
+            b'object-id="10.1101/2021.11.09.467796" link-type="continued-by" '
+            b'xlink:href="https://sciety.org/articles/activity/10.1101/2021.11.09.467796" />'
+            b"</root>"
+        )
+        self.assertEqual(xml_string, expected)
+
+
+class TestSetBody(unittest.TestCase):
+    def test_set_body(self):
+        "test body tag with article content"
+        root = Element("root")
+        article = Article()
+        article.content_blocks = [ContentBlock("p", "Test.")]
+
+        build.set_body(root, article)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root><body><p>Test.</p></body></root>"
+        self.assertEqual(xml_string, expected)
+
+
+class TestSetContentBlocks(unittest.TestCase):
+    def test_set_content_blocks(self):
+        root = Element("root")
+        parent_block = ContentBlock("p", "First level paragraph.")
+        child_block = ContentBlock("p", "", {"type": "empty"})
+        parent_block.content_blocks.append(child_block)
+        content_blocks = [parent_block]
+        build.set_content_blocks(root, content_blocks)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b'<root><p>First level paragraph.<p type="empty" /></p></root>'
+        self.assertEqual(xml_string, expected)
+
+    def test_generate_max_level(self):
+        "test exceeding the MAX_LEVEL of nested content"
+        max_level_original = build.MAX_LEVEL
+        build.MAX_LEVEL = 1
+        # add two levels of nested content
+
+        parent_block = ContentBlock("p", "First level paragraph.")
+        child_block = ContentBlock("p", "Second level paragraph.")
+        parent_block.content_blocks.append(child_block)
+        content_blocks = [parent_block]
+        root = Element("root")
+        with self.assertRaises(Exception):
+            build.set_content_blocks(root, content_blocks)
+        # reset the module MAX_LEVEL value
+        build.MAX_LEVEL = max_level_original
