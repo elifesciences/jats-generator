@@ -275,7 +275,7 @@ def set_copyright(parent, poa_article):
     if date:
         copyright_year = date.date.tm_year
 
-    copyright_statement = u"\u00a9 " + str(copyright_year) + ", " + copyright_holder
+    copyright_statement = "\u00a9 " + str(copyright_year) + ", " + copyright_holder
     copyright_tag = SubElement(parent, "copyright-statement")
     copyright_tag.text = copyright_statement
 
@@ -506,3 +506,76 @@ def set_corresp(parent, contributor, corresp_count):
         email_tag = SubElement(corresp, "email")
         email_tag.text = email
         email_tag.tail = " (" + initials + ");"
+
+
+def set_article_id(parent, article):
+    if article.doi:
+        doi_tag = SubElement(parent, "article-id")
+        doi_tag.set("pub-id-type", "doi")
+        doi_tag.text = article.doi
+
+
+def set_related_object(parent, article):
+    # add related-object link to Editor's evaluation
+    related_object_num = 1
+    for related_material in article.related_articles:
+        if related_material.ext_link_type and related_material.xlink_href:
+            related_object_tag = SubElement(parent, "related-object")
+            related_object_tag.set("id", "%sro%s" % (article.id, related_object_num))
+            related_object_tag.set("object-id-type", "id")
+            related_object_tag.set(
+                "object-id", utils.object_id_from_uri(related_material.xlink_href)
+            )
+            related_object_tag.set("link-type", related_material.ext_link_type)
+            related_object_tag.set("xlink:href", related_material.xlink_href)
+            related_object_num += 1
+
+
+def set_body(parent, article):
+    "set body tag"
+    body_tag = SubElement(parent, "body")
+    if hasattr(article, "content_blocks") and article.content_blocks:
+        set_content_blocks(body_tag, article.content_blocks)
+    return body_tag
+
+
+# max level of recursion adding content blocks supported
+MAX_LEVEL = 5
+
+
+def set_content_blocks(parent, content_blocks, level=1):
+    "used when setting body content"
+    if level > MAX_LEVEL:
+        raise Exception("Maximum level of nested content blocks reached")
+    for block in content_blocks:
+        block_tag = None
+        if block.block_type in [
+            "boxed-text",
+            "disp-formula",
+            "disp-quote",
+            "fig",
+            "list",
+            "media",
+            "p",
+            "table-wrap",
+        ]:
+            # retain standard tag attributes as well as any specific ones from the block object
+            if block.content:
+                utils.append_to_tag(
+                    parent,
+                    block.block_type,
+                    block.content,
+                    utils.XML_NAMESPACE_MAP,
+                    attributes=block.attr_names(),
+                    attributes_text=block.attr_string(),
+                )
+                block_tag = parent[-1]
+            else:
+                # add empty tags too
+                block_tag = SubElement(parent, block.block_type)
+                block_tag.text = block.content
+                for key, value in block.attr.items():
+                    block_tag.set(key, value)
+        if block_tag is not None and block.content_blocks:
+            # recursion
+            set_content_blocks(block_tag, block.content_blocks, level + 1)

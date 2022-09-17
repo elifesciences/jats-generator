@@ -32,21 +32,11 @@ b) Install locally
 
 Clone the git repo
 
-`git clone https://github.com/elifesciences/jats-generator.git`
+    git clone https://github.com/elifesciences/jats-generator.git
 
 Create a python virtual environment and activate it
 
-```
-python3 -m venv venv
-source venv/bin/activate
-```
-
-Install it locally
-
-```
-pip install -r requirements.txt
-python setup.py install
-```
+    ./install.sh
 
 ## Configuration
 
