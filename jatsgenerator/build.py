@@ -85,10 +85,16 @@ def set_name(parent, contributor):
         suffix.text = contributor.suffix
 
 
+def set_anonymous(parent):
+    SubElement(parent, "anonymous")
+
+
 def set_contrib_name(parent, contributor):
     if contributor.collab:
         collab_tag = SubElement(parent, "collab")
         collab_tag.text = contributor.collab
+    elif hasattr(contributor, "anonymous") and contributor.anonymous:
+        set_anonymous(parent)
     else:
         set_name(parent, contributor)
 

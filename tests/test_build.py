@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
-from elifearticle.article import Article, ContentBlock, RelatedArticle
+from elifearticle.article import Article, ContentBlock, Contributor, RelatedArticle
 from ejpcsvparser import csv_data
 from jatsgenerator import generate, build
 
@@ -30,6 +30,40 @@ class TestBuild(unittest.TestCase):
             '<kwd-group kwd-group-type="author-keywords">'
             in article_xml.output_xml().decode("utf8")
         )
+
+
+class TestSetContribName(unittest.TestCase):
+    def test_set_contrib_name_anonymous(self):
+        root = Element("root")
+        contributor = Contributor("author", None, None)
+        contributor.anonymous = True
+        build.set_contrib_name(root, contributor)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root><anonymous /></root>"
+        self.assertEqual(xml_string, expected)
+
+    def test_set_contrib_name_collab(self):
+        root = Element("root")
+        contributor = Contributor("author", None, None, "Orgname")
+        build.set_contrib_name(root, contributor)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root><collab>Orgname</collab></root>"
+        self.assertEqual(xml_string, expected)
+
+    def test_set_contrib_name(self):
+        root = Element("root")
+        contributor = Contributor("author", "Surname", "Given")
+        build.set_contrib_name(root, contributor)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = (
+            b"<root>"
+            b"<name>"
+            b"<surname>Surname</surname>"
+            b"<given-names>Given</given-names>"
+            b"</name>"
+            b"</root>"
+        )
+        self.assertEqual(xml_string, expected)
 
 
 class TestSetTitleGroup(unittest.TestCase):
