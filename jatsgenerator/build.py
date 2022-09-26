@@ -108,6 +108,8 @@ def set_contrib_role(parent, contrib_type):
 def set_contrib_orcid(parent, contributor):
     if contributor.orcid:
         orcid_tag = SubElement(parent, "contrib-id")
+        if contributor.orcid_authenticated:
+            orcid_tag.set("authenticated", "true")
         orcid_tag.set("contrib-id-type", "orcid")
         orcid_tag.text = "http://orcid.org/" + contributor.orcid
 

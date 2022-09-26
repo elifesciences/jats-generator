@@ -66,6 +66,39 @@ class TestSetContribName(unittest.TestCase):
         self.assertEqual(xml_string, expected)
 
 
+class TestSetContribOrcid(unittest.TestCase):
+    def test_set_contrib_orcid_true(self):
+        root = Element("root")
+        contributor = Contributor("author", "Surname", "Given")
+        contributor.orcid = "0000-00000-0000-0000"
+        contributor.orcid_authenticated = True
+        build.set_contrib_orcid(root, contributor)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = (
+            b"<root>"
+            b'<contrib-id authenticated="true" contrib-id-type="orcid">'
+            b"http://orcid.org/0000-00000-0000-0000"
+            b"</contrib-id>"
+            b"</root>"
+        )
+        self.assertEqual(xml_string, expected)
+
+    def test_set_contrib_orcid_none(self):
+        root = Element("root")
+        contributor = Contributor("author", "Surname", "Given")
+        contributor.orcid = "0000-00000-0000-0000"
+        build.set_contrib_orcid(root, contributor)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = (
+            b"<root>"
+            b'<contrib-id contrib-id-type="orcid">'
+            b"http://orcid.org/0000-00000-0000-0000"
+            b"</contrib-id>"
+            b"</root>"
+        )
+        self.assertEqual(xml_string, expected)
+
+
 class TestSetTitleGroup(unittest.TestCase):
     def test_set_title_group(self):
         "test title-group and article-title tag"
