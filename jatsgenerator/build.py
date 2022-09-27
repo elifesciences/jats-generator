@@ -137,30 +137,45 @@ def set_contrib_conflict(parent, contrib_type, rid):
         xref_tag.set("rid", rid)
 
 
-def set_aff(parent, affiliation, contrib_type, aff_id=None):
+def set_aff(
+    parent, affiliation, contrib_type, aff_id=None, tail=", ", institution_wrap=None
+):
     aff = SubElement(parent, "aff")
 
     if aff_id:
         aff.set("id", aff_id)
 
+    if institution_wrap:
+        institution_parent_tag = SubElement(aff, "institution-wrap")
+    else:
+        institution_parent_tag = aff
+
+    if affiliation.ror:
+        institution_id = SubElement(institution_parent_tag, "institution-id")
+        institution_id.set("institution-id", "ror")
+        institution_id.text = affiliation.ror
+
     if contrib_type != "editor":
         if affiliation.department:
-            department = SubElement(aff, "institution")
+            department = SubElement(institution_parent_tag, "institution")
             department.set("content-type", "dept")
             department.text = affiliation.department
-            department.tail = ", "
+            if tail:
+                department.tail = tail
 
     if affiliation.institution:
-        institution = SubElement(aff, "institution")
+        institution = SubElement(institution_parent_tag, "institution")
         institution.text = affiliation.institution
-        institution.tail = ", "
+        if tail:
+            institution.tail = tail
 
     if affiliation.city:
         addline = SubElement(aff, "addr-line")
         city = SubElement(addline, "named-content")
         city.set("content-type", "city")
         city.text = affiliation.city
-        addline.tail = ", "
+        if tail:
+            addline.tail = tail
 
     if affiliation.country:
         country = SubElement(aff, "country")

@@ -1,9 +1,14 @@
 import unittest
 import os
-from collections import OrderedDict
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
-from elifearticle.article import Article, ContentBlock, Contributor, RelatedArticle
+from elifearticle.article import (
+    Affiliation,
+    Article,
+    ContentBlock,
+    Contributor,
+    RelatedArticle,
+)
 from ejpcsvparser import csv_data
 from jatsgenerator import generate, build
 
@@ -94,6 +99,103 @@ class TestSetContribOrcid(unittest.TestCase):
             b'<contrib-id contrib-id-type="orcid">'
             b"http://orcid.org/0000-00000-0000-0000"
             b"</contrib-id>"
+            b"</root>"
+        )
+        self.assertEqual(xml_string, expected)
+
+
+class TestSetAff(unittest.TestCase):
+    def setUp(self):
+        self.affiliation = Affiliation()
+        self.affiliation.phone = "Phone"
+        self.affiliation.fax = "Fax"
+        self.affiliation.department = "Department"
+        self.affiliation.institution = "Institution"
+        self.affiliation.city = "City"
+        self.affiliation.country = "Country"
+        self.affiliation.ror = "ror"
+
+    def test_set_aff_minimal(self):
+        "minimal affiliation data"
+        root = Element("root")
+        contrib_type = "author"
+        build.set_aff(root, Affiliation(), contrib_type)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root><aff /></root>"
+        self.assertEqual(xml_string, expected)
+
+    def test_set_aff_default(self):
+        "default, older, style with some comma separated tags"
+        root = Element("root")
+        contrib_type = "author"
+        aff_id = "1"
+        build.set_aff(root, self.affiliation, contrib_type, aff_id)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = (
+            b"<root>"
+            b'<aff id="1">'
+            b'<institution-id institution-id="ror">ror</institution-id>'
+            b'<institution content-type="dept">Department</institution>, '
+            b"<institution>Institution</institution>, "
+            b"<addr-line>"
+            b'<named-content content-type="city">City</named-content>'
+            b"</addr-line>, "
+            b"<country>Country</country>"
+            b"<phone>Phone</phone>"
+            b"<fax>Fax</fax>"
+            b"</aff>"
+            b"</root>"
+        )
+        self.assertEqual(xml_string, expected)
+
+    def test_set_aff_default_editor(self):
+        "default, editor style does not add department for some reason"
+        root = Element("root")
+        contrib_type = "editor"
+        aff_id = "1"
+        build.set_aff(root, self.affiliation, contrib_type, aff_id)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = (
+            b"<root>"
+            b'<aff id="1"><institution-id institution-id="ror">ror</institution-id>'
+            b"<institution>Institution</institution>, "
+            b"<addr-line>"
+            b'<named-content content-type="city">City</named-content>'
+            b"</addr-line>, "
+            b"<country>Country</country>"
+            b"<phone>Phone</phone>"
+            b"<fax>Fax</fax>"
+            b"</aff>"
+            b"</root>"
+        )
+        self.assertEqual(xml_string, expected)
+
+    def test_set_aff_newer_style(self):
+        "do not add tag tail and add institution-wrap tag"
+        root = Element("root")
+        contrib_type = "author"
+        aff_id = "1"
+        tail = None
+        institution_wrap = True
+        build.set_aff(
+            root, self.affiliation, contrib_type, aff_id, tail, institution_wrap
+        )
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = (
+            b"<root>"
+            b'<aff id="1">'
+            b"<institution-wrap>"
+            b'<institution-id institution-id="ror">ror</institution-id>'
+            b'<institution content-type="dept">Department</institution>'
+            b"<institution>Institution</institution>"
+            b"</institution-wrap>"
+            b"<addr-line>"
+            b'<named-content content-type="city">City</named-content>'
+            b"</addr-line>"
+            b"<country>Country</country>"
+            b"<phone>Phone</phone>"
+            b"<fax>Fax</fax>"
+            b"</aff>"
             b"</root>"
         )
         self.assertEqual(xml_string, expected)
