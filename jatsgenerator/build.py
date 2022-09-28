@@ -99,8 +99,15 @@ def set_contrib_name(parent, contributor):
         set_name(parent, contributor)
 
 
-def set_contrib_role(parent, contrib_type):
-    if contrib_type == "editor":
+def set_contrib_role(parent, contrib_type, contributor=None):
+    if contributor and hasattr(contributor, "roles") and contributor.roles:
+        for role in contributor.roles:
+            role_tag = SubElement(parent, "role")
+            if role.specific_use:
+                role_tag.set("specific-use", role.specific_use)
+            if role.text:
+                role_tag.text = role.text
+    elif contrib_type == "editor":
         role_tag = SubElement(parent, "role")
         role_tag.text = "Reviewing editor"
 
