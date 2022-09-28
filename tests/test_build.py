@@ -8,6 +8,7 @@ from elifearticle.article import (
     ContentBlock,
     Contributor,
     RelatedArticle,
+    Role,
 )
 from ejpcsvparser import csv_data
 from jatsgenerator import generate, build
@@ -68,6 +69,30 @@ class TestSetContribName(unittest.TestCase):
             b"</name>"
             b"</root>"
         )
+        self.assertEqual(xml_string, expected)
+
+
+class TestSetContribRole(unittest.TestCase):
+    def test_set_set_contrib_role(self):
+        "older logic for hard-coded Reviewing editor role"
+        root = Element("root")
+        contrib_type = "editor"
+        contributor = Contributor(contrib_type, None, None)
+        build.set_contrib_role(root, contrib_type)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root><role>Reviewing editor</role></root>"
+        self.assertEqual(xml_string, expected)
+
+    def test_set_set_contrib_role_from_contributor(self):
+        "newer logic takes role from the Contributor.roles"
+        root = Element("root")
+        contrib_type = "author"
+        contributor = Contributor(contrib_type, None, None)
+        contributor.anonymous = True
+        contributor.roles = [Role("Reviewer", "referee")]
+        build.set_contrib_role(root, contrib_type, contributor)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b'<root><role specific-use="referee">Reviewer</role></root>'
         self.assertEqual(xml_string, expected)
 
 
