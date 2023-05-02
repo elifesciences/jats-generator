@@ -86,6 +86,7 @@ class ArticleXML:
         self.set_frontmatter(root, poa_article)
         # self.set_title(self.root, poa_article)
         self.set_backmatter(root, poa_article)
+        build.set_sub_articles(root, poa_article)
 
     def set_frontmatter(self, parent, poa_article):
         front = SubElement(parent, "front")
@@ -94,20 +95,28 @@ class ArticleXML:
         return front
 
     def set_backmatter(self, parent, poa_article):
-        back = SubElement(parent, "back")
-        info_sec = self.set_section(back, "additional-information")
-        info_sec_title = SubElement(info_sec, "title")
-        info_sec_title.text = "Additional information"
-        if poa_article.has_contributor_conflict() or poa_article.conflict_default:
-            build.set_fn_group_competing_interest(info_sec, poa_article)
-        if poa_article.ethics:
-            build.set_fn_group_ethics_information(info_sec, poa_article)
-        if poa_article.datasets or poa_article.data_availability:
-            supp_sec = self.set_section(back, "supplementary-material")
-            supp_sec_title = SubElement(supp_sec, "title")
-            supp_sec_title.text = "Additional Files"
-            data_sec = self.set_section(supp_sec, "data-availability")
-            self.set_article_datasets(data_sec, poa_article)
+        # whether to add a back tag at all
+        if (
+            poa_article.has_contributor_conflict()
+            or poa_article.conflict_default
+            or poa_article.ethics
+            or poa_article.datasets
+            or poa_article.data_availability
+        ):
+            back = SubElement(parent, "back")
+            info_sec = self.set_section(back, "additional-information")
+            info_sec_title = SubElement(info_sec, "title")
+            info_sec_title.text = "Additional information"
+            if poa_article.has_contributor_conflict() or poa_article.conflict_default:
+                build.set_fn_group_competing_interest(info_sec, poa_article)
+            if poa_article.ethics:
+                build.set_fn_group_ethics_information(info_sec, poa_article)
+            if poa_article.datasets or poa_article.data_availability:
+                supp_sec = self.set_section(back, "supplementary-material")
+                supp_sec_title = SubElement(supp_sec, "title")
+                supp_sec_title.text = "Additional Files"
+                data_sec = self.set_section(supp_sec, "data-availability")
+                self.set_article_datasets(data_sec, poa_article)
 
     def set_section(self, parent, sec_type):
         self.context.sec_count += 1
@@ -133,13 +142,23 @@ class ArticleXML:
             article_id.text = poa_article.doi
             article_id.set("pub-id-type", pub_id_type)
 
+        # article-id pub-id-type="doi" specific-use="version"
+        if hasattr(poa_article, "version_doi") and poa_article.version_doi:
+            pub_id_type = "doi"
+            article_id = SubElement(article_meta, "article-id")
+            article_id.text = poa_article.version_doi
+            article_id.set("pub-id-type", pub_id_type)
+            article_id.set("specific-use", "version")
+
         # article-categories
         build.set_article_categories(article_meta, poa_article)
 
-        build.set_title_group(article_meta, poa_article)
+        if poa_article.title:
+            build.set_title_group(article_meta, poa_article)
 
-        for contrib_type in self.jats_config.get("contrib_types"):
-            self.set_contrib_group(article_meta, poa_article, contrib_type)
+        if poa_article.contributors:
+            for contrib_type in self.jats_config.get("contrib_types"):
+                self.set_contrib_group(article_meta, poa_article, contrib_type)
 
         if bool(
             [contrib for contrib in poa_article.contributors if contrib.corresp is True]
@@ -148,21 +167,32 @@ class ArticleXML:
 
         build.set_pub_date(article_meta, poa_article, "pub")
 
+        build.set_pub_date(article_meta, poa_article, "posted_date")
+
         build.set_volume(article_meta, poa_article)
 
         if poa_article.manuscript:
             elocation_id = SubElement(article_meta, "elocation-id")
-            elocation_id.text = "e" + str(int(poa_article.manuscript)).zfill(5)
+            if "elocation_id_pattern" in self.jats_config:
+                elocation_id.text = self.jats_config.get("elocation_id_pattern").format(
+                    manuscript=poa_article.manuscript
+                )
+            else:
+                elocation_id.text = "e" + str(int(poa_article.manuscript)).zfill(5)
 
         if poa_article.dates:
             build.set_history(
                 article_meta, poa_article, self.jats_config.get("history_date_types")
             )
 
+        if poa_article.publication_history:
+            build.set_publication_history(article_meta, poa_article)
+
         if poa_article.license:
             build.set_permissions(article_meta, poa_article)
 
-        build.set_abstract(article_meta, poa_article)
+        if poa_article.abstract:
+            build.set_abstract(article_meta, poa_article)
 
         # Disabled author keywords from inclusion Oct 2, 2015
         # if poa_article.author_keywords:

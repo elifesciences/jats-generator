@@ -1,3 +1,4 @@
+import time
 from xml.etree.ElementTree import Element, SubElement
 from elifearticle import utils as eautils
 from jatsgenerator import utils
@@ -261,6 +262,55 @@ def set_history(parent, poa_article, date_types):
             set_date(history, poa_article, date_type)
 
 
+def set_publication_history(parent, poa_article):
+    pub_history = SubElement(parent, "pub-history")
+    for event in poa_article.publication_history:
+        event_tag = SubElement(pub_history, "event")
+        if event.event_desc:
+            event_desc_tag = SubElement(event_tag, "event-desc")
+            event_desc_tag.text = event.event_desc
+        if event.date:
+            event_date_tag = SubElement(event_tag, "date")
+            event_date_tag.set("date-type", event.event_type)
+            event_date_tag.set("iso-8601-date", time.strftime("%Y-%m-%d", event.date))
+            set_dmy(event_date_tag, event.date)
+        if event.uri:
+            self_uri_tag = SubElement(event_tag, "self-uri")
+            self_uri_tag.set("content-type", event.event_type)
+            self_uri_tag.set("xlink:href", event.uri)
+
+
+def set_sub_articles(parent, article):
+    for review_article in article.review_articles:
+        set_sub_article(parent, review_article)
+
+
+def set_sub_article(parent, article):
+    sub_article_tag = SubElement(parent, "sub-article")
+    if article.id:
+        sub_article_tag.set("id", article.id)
+    if article.article_type:
+        sub_article_tag.set("article-type", article.article_type)
+    front_stub_tag = SubElement(sub_article_tag, "front-stub")
+    set_article_id(front_stub_tag, article)
+    set_title_group(front_stub_tag, article)
+    if article.contributors:
+        for contributor in article.contributors:
+            contrib_group_tag = SubElement(front_stub_tag, "contrib-group")
+            contrib_tag = SubElement(contrib_group_tag, "contrib")
+            contrib_tag.set("contrib-type", contributor.contrib_type)
+            set_contrib_name(contrib_tag, contributor)
+            set_contrib_orcid(contrib_tag, contributor)
+            # add inline aff tags
+            for affiliation in contributor.affiliations:
+                set_aff(
+                    contrib_tag,
+                    affiliation,
+                    contributor.contrib_type,
+                    institution_wrap=True,
+                )
+
+
 def set_license(parent, poa_article):
     license_tag = SubElement(parent, "license")
 
@@ -483,11 +533,11 @@ def set_pub_date(parent, poa_article, pub_type):
     # pub-date pub-type = pub_type
     date = poa_article.get_date(pub_type)
     if date:
-        if pub_type == "pub":
+        if pub_type in ["posted_date", "pub"]:
             date_tag = SubElement(parent, "pub-date")
             date_tag.set("date-type", pub_type)
             date_tag.set("publication-format", "electronic")
-            set_dmy(date_tag, date)
+            set_dmy(date_tag, date.date)
 
 
 def set_date(parent, poa_article, date_type):
@@ -496,16 +546,16 @@ def set_date(parent, poa_article, date_type):
     if date:
         date_tag = SubElement(parent, "date")
         date_tag.set("date-type", date_type)
-        set_dmy(date_tag, date)
+        set_dmy(date_tag, date.date)
 
 
 def set_dmy(parent, date):
     day = SubElement(parent, "day")
-    day.text = str(date.date.tm_mday).zfill(2)
+    day.text = str(date.tm_mday).zfill(2)
     month = SubElement(parent, "month")
-    month.text = str(date.date.tm_mon).zfill(2)
+    month.text = str(date.tm_mon).zfill(2)
     year = SubElement(parent, "year")
-    year.text = str(date.date.tm_year)
+    year.text = str(date.tm_year)
 
 
 def set_author_notes(parent, poa_article):
