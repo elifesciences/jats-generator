@@ -1,5 +1,5 @@
 import unittest
-import os
+import time
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 from elifearticle.article import (
@@ -7,20 +7,19 @@ from elifearticle.article import (
     Article,
     ContentBlock,
     Contributor,
+    Event,
     RelatedArticle,
     Role,
 )
 from ejpcsvparser import csv_data
 from jatsgenerator import generate, build
-
-TEST_BASE_PATH = os.path.dirname(os.path.abspath(__file__)) + os.sep
-TEST_DATA_PATH = TEST_BASE_PATH + "test_data" + os.sep
+from tests import helpers
 
 
 class TestBuild(unittest.TestCase):
     def setUp(self):
         # override settings
-        csv_data.CSV_PATH = TEST_DATA_PATH
+        csv_data.CSV_PATH = helpers.TEST_DATA_PATH
 
     def test_author_keywords(self):
         "test setting author keywords which is currently disabled"
@@ -234,6 +233,87 @@ class TestSetTitleGroup(unittest.TestCase):
         build.set_title_group(root, article)
         xml_string = ElementTree.tostring(root, encoding="utf-8")
         expected = b"<root><title-group><article-title>Title</article-title></title-group></root>"
+        self.assertEqual(xml_string, expected)
+
+
+class TestSetPublicationHistory(unittest.TestCase):
+    def test_set_publication_history(self):
+        "set pub-history tag and event tag inside"
+        root = Element("root")
+        article = Article(None, "Title")
+        preprint_event = Event()
+        preprint_event.event_type = "preprint"
+        preprint_event.event_desc = "This manuscript was published as a preprint."
+        preprint_event.date = time.strptime("2022-10-17", "%Y-%m-%d")
+        preprint_event.uri = "https://doi.org/10.1101/2022.10.17.512253"
+        article.publication_history = [preprint_event]
+        expected = (
+            b"<root>"
+            b"<pub-history>"
+            b"<event>"
+            b"<event-desc>This manuscript was published as a preprint.</event-desc>"
+            b'<date date-type="preprint" iso-8601-date="2022-10-17">'
+            b"<day>17</day>"
+            b"<month>10</month>"
+            b"<year>2022</year>"
+            b"</date>"
+            b'<self-uri content-type="preprint" xlink:href="https://doi.org/10.1101/2022.10.17.512253" />'
+            b"</event>"
+            b"</pub-history>"
+            b"</root>"
+        )
+        # invoke
+        build.set_publication_history(root, article)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        self.assertEqual(xml_string, expected)
+
+
+class TestSetSubArticle(unittest.TestCase):
+    def test_set_sub_article(self):
+        root = Element("root")
+        sub_article = Article("10.7554/eLife.84364.1.sa0", "eLife assessment")
+        sub_article.id = "sa0"
+        sub_article.article_type = "editor-report"
+        affiliation = Affiliation()
+        affiliation.institution = "University of California"
+        affiliation.city = "Berkeley"
+        affiliation.country = "United States"
+        contributor = Contributor("author", "Eisen", "Michael B")
+        contributor.set_affiliation(affiliation)
+        sub_article.add_contributor(contributor)
+        expected = (
+            b"<root>"
+            b'<sub-article id="sa0" article-type="editor-report">'
+            b"<front-stub>"
+            b'<article-id pub-id-type="doi">10.7554/eLife.84364.1.sa0</article-id>'
+            b"<title-group>"
+            b"<article-title>eLife assessment</article-title>"
+            b"</title-group>"
+            b"<contrib-group>"
+            b'<contrib contrib-type="author">'
+            b"<name>"
+            b"<surname>Eisen</surname>"
+            b"<given-names>Michael B</given-names>"
+            b"</name>"
+            b"<aff>"
+            b"<institution-wrap>"
+            b"<institution>University of California</institution>, "
+            b"</institution-wrap>"
+            b"<addr-line>"
+            b'<named-content content-type="city">Berkeley</named-content>'
+            b"</addr-line>, "
+            b"<country>United States</country>"
+            b"</aff>"
+            b"</contrib>"
+            b"</contrib-group>"
+            b"</front-stub>"
+            b"</sub-article>"
+            b"</root>"
+        )
+        # invoke
+        build.set_sub_article(root, sub_article)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+
         self.assertEqual(xml_string, expected)
 
 
