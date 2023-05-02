@@ -1,36 +1,35 @@
 import unittest
 import time
-import os
 import sys
 from mock import Mock, patch
-from elifearticle.article import ArticleDate
+from elifearticle.article import (
+    Affiliation,
+    Article,
+    ArticleDate,
+    ContentBlock,
+    Contributor,
+    Event,
+    License,
+    RelatedArticle,
+    Role,
+)
 from ejpcsvparser import csv_data
 from jatsgenerator import generate
 from jatsgenerator.generate import ArticleXML
-from jatsgenerator.conf import raw_config, parse_raw_config
-
-TEST_BASE_PATH = os.path.dirname(os.path.abspath(__file__)) + os.sep
-TEST_DATA_PATH = TEST_BASE_PATH + "test_data" + os.sep
-TARGET_OUTPUT_DIR = TEST_BASE_PATH + "tmp" + os.sep
+from tests import helpers
 
 
-def read_file_content(file_name):
-    with open(file_name, "rb") as open_file:
-        content = open_file.read()
-    return content
-
-
-def build_config(config_section):
-    "build the config and override the output directory"
-    jats_config = parse_raw_config(raw_config(config_section))
-    jats_config["target_output_dir"] = TARGET_OUTPUT_DIR
-    return jats_config
+def anonymous_contributor(contrib_type="author"):
+    "instantiate an anonymous Contributor object"
+    contributor = Contributor(contrib_type, None, None)
+    contributor.anonymous = True
+    return contributor
 
 
 class TestGenerate(unittest.TestCase):
     def setUp(self):
         # override settings
-        csv_data.CSV_PATH = TEST_DATA_PATH
+        csv_data.CSV_PATH = helpers.TEST_DATA_PATH
         self.passes = []
         self.default_pub_date = time.strptime("2012-11-13", "%Y-%m-%d")
         self.passes.append(
@@ -55,7 +54,7 @@ class TestGenerate(unittest.TestCase):
             volume,
             expected_xml_file,
         ) in self.passes:
-            jats_config = build_config(config_section)
+            jats_config = helpers.build_config(config_section)
             article = generate.build_article_from_csv(article_id, jats_config)
             self.assertIsNotNone(article, "count not build article from csv")
             # add the pub_date
@@ -75,8 +74,12 @@ class TestGenerate(unittest.TestCase):
                     article_id=article_id
                 ),
             )
-            generated_xml = read_file_content(TARGET_OUTPUT_DIR + expected_xml_file)
-            model_xml = read_file_content(TEST_DATA_PATH + expected_xml_file)
+            generated_xml = helpers.read_file_content(
+                helpers.TARGET_OUTPUT_DIR + expected_xml_file
+            )
+            model_xml = helpers.read_file_content(
+                helpers.TEST_DATA_PATH + expected_xml_file
+            )
             if sys.version_info < (3, 8):
                 # pre-Python 3.8 the order of XML tag attributes are alphabetised
                 # research-article
@@ -265,3 +268,106 @@ class TestGenerate(unittest.TestCase):
         self.assertTrue(
             "<article-categories>" not in article_xml.output_xml().decode("utf8")
         )
+
+
+class TestGeneratePreprint(unittest.TestCase):
+    def test_preprint(self):
+        "test from Article objects to generate an XML for a preprint article"
+        jats_config = helpers.build_config("elife_preprint")
+        add_comment = False
+        # build Article objects
+        article = Article(
+            "10.7554/eLife.84364",
+            (
+                "Opto-RhoGEFs: an optimized optogenetic toolbox to reversibly control "
+                "Rho GTPase activity on a global to subcellular scale, enabling "
+                "precise control over vascular endothelial barrier strength"
+            ),
+        )
+        article.article_type = "preprint"
+        article.manuscript = "84364"
+        article.version_doi = "10.7554/eLife.84364.1"
+        article.abstract = "An abstract."
+        # contributor
+        contributor = Contributor("author", "Mahlandt", "Eike K.")
+        affiliation = Affiliation()
+        affiliation.institution = (
+            "Swammerdam Institute for Life Sciences, Section of Molecular Cytology, "
+            "van Leeuwenhoek Centre for Advanced Microscopy, University of Amsterdam, "
+            "Science Park 904, 1098 XH, Amsterdam"
+        )
+        affiliation.country = "The Netherlands"
+        contributor.set_affiliation(affiliation)
+        article.add_contributor(contributor)
+        # date
+        article.add_date(
+            ArticleDate("posted_date", time.strptime("2023-02-13", "%Y-%m-%d"))
+        )
+        # volume
+        article.volume = 12
+        # license
+        license_object = License()
+        license_object.href = "http://creativecommons.org/licenses/by/4.0/"
+        article.license = license_object
+        # pub-history
+        preprint_event = Event()
+        preprint_event.event_type = "preprint"
+        preprint_event.date = time.strptime("2022-10-17", "%Y-%m-%d")
+        preprint_event.uri = "https://doi.org/10.1101/2022.10.17.512253"
+        reviewed_preprint_event = Event()
+        reviewed_preprint_event.event_type = "reviewed-preprint"
+        reviewed_preprint_event.date = time.strptime("2023-02-12", "%Y-%m-%d")
+        reviewed_preprint_event.uri = "https://doi.org/10.7554/eLife.84364.1"
+        article.publication_history = [preprint_event, reviewed_preprint_event]
+        # sub-article data
+        sub_article_1 = Article("10.7554/eLife.84364.1.sa0", "eLife assessment")
+        sub_article_1.id = "sa0"
+        sub_article_1.article_type = "editor-report"
+        affiliation = Affiliation()
+        affiliation.institution = "University of California"
+        affiliation.city = "Berkeley"
+        affiliation.country = "United States"
+        contributor = Contributor("author", "Eisen", "Michael B")
+        contributor.set_affiliation(affiliation)
+        sub_article_1.add_contributor(contributor)
+
+        sub_article_2 = Article(
+            "10.7554/eLife.84364.1.sa1", "Reviewer #1 (Public Review)"
+        )
+        sub_article_2.id = "sa1"
+        sub_article_2.article_type = "referee-report"
+        sub_article_2.add_contributor(anonymous_contributor())
+
+        sub_article_3 = Article(
+            "10.7554/eLife.84364.1.sa2", "Reviewer #2 (Public Review)"
+        )
+        sub_article_3.id = "sa2"
+        sub_article_3.article_type = "referee-report"
+        sub_article_3.add_contributor(anonymous_contributor())
+
+        sub_article_4 = Article(
+            "10.7554/eLife.84364.1.sa3", "Reviewer #3 (Public Review)"
+        )
+        sub_article_4.id = "sa3"
+        sub_article_4.article_type = "referee-report"
+        sub_article_4.add_contributor(anonymous_contributor())
+
+        sub_article_5 = Article("10.7554/eLife.84364.1.sa4", "Author response")
+        sub_article_5.id = "sa4"
+        sub_article_5.article_type = "author-comment"
+        contributor = Contributor("author", "Mahlandt", "Eike K.")
+        sub_article_5.add_contributor(contributor)
+
+        article.review_articles = [
+            sub_article_1,
+            sub_article_2,
+            sub_article_3,
+            sub_article_4,
+            sub_article_5,
+        ]
+        # invoke
+        article_xml = generate.ArticleXML(article, jats_config, add_comment)
+        xml_string = article_xml.output_xml(pretty=True, indent="\t")
+        # assertion
+        model_xml = helpers.read_file_content(helpers.TEST_DATA_PATH + "preprint.xml")
+        self.assertEqual(xml_string, model_xml)
