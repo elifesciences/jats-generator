@@ -1,7 +1,6 @@
 """Utility functions for generating JATS"""
 
 import re
-from xml.dom import minidom
 from elifetools import utils as etoolsutils
 from elifetools import xmlio
 
@@ -80,6 +79,7 @@ def allowed_tags():
         "</td>",
         "<xref ",
         "</xref>",
+        "<break",
     )
 
 
