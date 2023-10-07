@@ -498,9 +498,10 @@ def set_award_group(parent, award, par_id):
     award_group.set("id", par_id)
     if award.institution_name or award.institution_id:
         set_funding_source(award_group, award.institution_id, award.institution_name)
-    for award_id in award.award_ids:
-        award_id_tag = SubElement(award_group, "award-id")
-        award_id_tag.text = award_id
+    for award_object in award.awards:
+        if award_object.award_id:
+            award_id_tag = SubElement(award_group, "award-id")
+            award_id_tag.text = award_object.award_id
     if award.principal_award_recipients:
         set_principal_award_recipients(award_group, award)
 
