@@ -112,10 +112,27 @@ class TestSetContribOrcid(unittest.TestCase):
         )
         self.assertEqual(xml_string, expected)
 
-    def test_set_contrib_orcid_none(self):
+    def test_not_authenticated(self):
+        "test if ORCID is not authenticated"
         root = Element("root")
         contributor = Contributor("author", "Surname", "Given")
         contributor.orcid = "0000-00000-0000-0000"
+        build.set_contrib_orcid(root, contributor)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = (
+            b"<root>"
+            b'<contrib-id contrib-id-type="orcid">'
+            b"http://orcid.org/0000-00000-0000-0000"
+            b"</contrib-id>"
+            b"</root>"
+        )
+        self.assertEqual(xml_string, expected)
+
+    def test_orcid_url(self):
+        "test if ORCID is a URL value"
+        root = Element("root")
+        contributor = Contributor("author", "Surname", "Given")
+        contributor.orcid = "https://orcid.org/0000-00000-0000-0000"
         build.set_contrib_orcid(root, contributor)
         xml_string = ElementTree.tostring(root, encoding="utf-8")
         expected = (

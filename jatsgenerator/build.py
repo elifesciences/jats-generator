@@ -1,6 +1,7 @@
 import time
 from xml.etree.ElementTree import Element, SubElement
 from elifearticle import utils as eautils
+from elifetools import utils as etoolsutils
 from jatsgenerator import utils
 
 
@@ -115,11 +116,12 @@ def set_contrib_role(parent, contrib_type, contributor=None):
 
 def set_contrib_orcid(parent, contributor):
     if contributor.orcid:
+        orcid_value = etoolsutils.orcid_uri_to_orcid(contributor.orcid)
         orcid_tag = SubElement(parent, "contrib-id")
         if contributor.orcid_authenticated:
             orcid_tag.set("authenticated", "true")
         orcid_tag.set("contrib-id-type", "orcid")
-        orcid_tag.text = "http://orcid.org/" + contributor.orcid
+        orcid_tag.text = "http://orcid.org/" + orcid_value
 
 
 def set_contrib_corresp(parent, rid):
