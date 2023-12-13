@@ -241,6 +241,18 @@ class TestSetAff(unittest.TestCase):
         )
         self.assertEqual(xml_string, expected)
 
+    def test_set_aff_text(self):
+        "test if an affiliation has only text"
+        affiliation = Affiliation()
+        affiliation.text = "Affiliation text"
+        root = Element("root")
+        contrib_type = "author"
+        aff_id = "1"
+        build.set_aff(root, affiliation, contrib_type, aff_id)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root>" b'<aff id="1">' b"Affiliation text" b"</aff>" b"</root>"
+        self.assertEqual(xml_string, expected)
+
 
 class TestSetTitleGroup(unittest.TestCase):
     def test_set_title_group(self):
@@ -332,6 +344,26 @@ class TestSetSubArticle(unittest.TestCase):
         xml_string = ElementTree.tostring(root, encoding="utf-8")
 
         self.assertEqual(xml_string, expected)
+
+
+class TestCompareAff(unittest.TestCase):
+    def test_compare_aff(self):
+        "compare the affiliation details"
+        aff1 = Affiliation()
+        aff1.institution = "One"
+        aff2 = Affiliation()
+        aff2.institution = "Two"
+        result = build.compare_aff(aff1, aff2)
+        self.assertEqual(result, False)
+
+    def test_compare_aff_text(self):
+        "compare only the text attribute"
+        aff1 = Affiliation()
+        aff1.text = "Equal"
+        aff2 = Affiliation()
+        aff2.text = "Equal"
+        result = build.compare_aff(aff1, aff2)
+        self.assertEqual(result, True)
 
 
 class TestSetArticleId(unittest.TestCase):
