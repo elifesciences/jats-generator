@@ -155,6 +155,16 @@ def set_aff(
     if aff_id:
         aff.set("id", aff_id)
 
+    # if there is text and no other essential attributes, set the text and return
+    essential_attributes = ["institution"]
+    if (
+        affiliation.text
+        and len([name for name in essential_attributes if getattr(affiliation, name)])
+        <= 0
+    ):
+        aff.text = affiliation.text
+        return
+
     if institution_wrap:
         institution_parent_tag = SubElement(aff, "institution-wrap")
     else:
@@ -405,6 +415,10 @@ def get_contrib_par_ids(poa_article, auth_id):
 def compare_aff(aff1, aff2):
     # Compare two affiliations by comparing the object attributes
     attrs = ["city", "country", "department", "institution"]
+    # if all attributes are empty, check the text attribute
+    if len([name for name in attrs if getattr(aff1, name)]) <= 0:
+        attrs = ["text"]
+
     for attr in attrs:
         if (
             getattr(aff1, attr)
