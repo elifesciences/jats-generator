@@ -366,6 +366,52 @@ class TestCompareAff(unittest.TestCase):
         self.assertEqual(result, True)
 
 
+class TestSetCorresp(unittest.TestCase):
+    def test_set_corresp(self):
+        "test setting corresponding author data"
+        root = Element("root")
+        affiliation = Affiliation()
+        affiliation.email = "a@example.org"
+        contributor = Contributor("author", "Surname", "Given")
+        contributor.set_affiliation(affiliation)
+        corresp_count = 1
+        expected = (
+            b"<root>"
+            b'<corresp id="cor1">'
+            b"<label>*</label>For correspondence: "
+            b"<email>a@example.org</email> (GS);"
+            b"</corresp>"
+            b"</root>"
+        )
+        # invoke
+        build.set_corresp(root, contributor, corresp_count)
+        # assert
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        self.assertEqual(xml_string, expected)
+
+    def test_no_given_name(self):
+        "test a contributor which has no given name"
+        root = Element("root")
+        affiliation = Affiliation()
+        affiliation.email = "a@example.org"
+        contributor = Contributor("author", "Surname", None)
+        contributor.set_affiliation(affiliation)
+        corresp_count = 1
+        expected = (
+            b"<root>"
+            b'<corresp id="cor1">'
+            b"<label>*</label>For correspondence: "
+            b"<email>a@example.org</email> (S);"
+            b"</corresp>"
+            b"</root>"
+        )
+        # invoke
+        build.set_corresp(root, contributor, corresp_count)
+        # assert
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        self.assertEqual(xml_string, expected)
+
+
 class TestSetArticleId(unittest.TestCase):
     def test_set_article_id(self):
         "test setting article-id tag with doi value"
