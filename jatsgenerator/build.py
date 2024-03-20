@@ -593,7 +593,14 @@ def set_corresp(parent, contributor, corresp_count):
         if affiliation.email:
             email = affiliation.email
             break
-    initials = "" + contributor.given_name[0] + contributor.surname[0]
+    # concatenate initials for the contributor
+    initials = "".join(
+        [
+            name_part[0]
+            for name_part in [contributor.given_name, contributor.surname]
+            if name_part
+        ]
+    )
     if email:
         corresp = SubElement(parent, "corresp")
         corresp.set("id", "cor" + str(corresp_count))
