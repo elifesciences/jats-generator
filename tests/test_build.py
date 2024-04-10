@@ -346,6 +346,58 @@ class TestSetSubArticle(unittest.TestCase):
         self.assertEqual(xml_string, expected)
 
 
+class TestSetAbstract(unittest.TestCase):
+    def test_set_abstract(self):
+        "test setting an abstract"
+        root = Element("root")
+        article = Article("10.7554/eLife.00666", "Title")
+        article.abstract = "An abstract"
+        build.set_abstract(root, article)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root><abstract><p>An abstract</p></abstract></root>"
+        self.assertEqual(xml_string, expected)
+
+    def test_set_abstract_with_p(self):
+        "test setting an abstract without wrapping it in a p tag"
+        root = Element("root")
+        article = Article("10.7554/eLife.00666", "Title")
+        article.abstract = "An abstract"
+        build.set_abstract(root, article)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root><abstract><p>An abstract</p></abstract></root>"
+        self.assertEqual(xml_string, expected)
+
+    def test_set_abstract_complex(self):
+        "test setting a more complicated abstract"
+        root = Element("root")
+        article = Article("10.7554/eLife.00666", "Title")
+        article.abstract = (
+            "<p>Abstract paragraph."
+            '<fig fig-type="figure" id="figa1" orientation="portrait" position="float">'
+            "<label>Graphical abstract</label>"
+            "<caption><p>Figure caption.</p></caption>"
+            '<graphic xlink:href="abstract.tif"/>'
+            "</fig>"
+            "</p>"
+        )
+
+        build.set_abstract(root, article)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+
+        expected = (
+            b"<root>"
+            b"<abstract>"
+            b"<p>Abstract paragraph."
+            b'<fig fig-type="figure" id="figa1" orientation="portrait" position="float">'
+            b"<label>Graphical abstract</label>"
+            b"<caption>Figure caption.</caption>"
+            b'<graphic xlink:href="abstract.tif" />'
+            b"</fig>"
+            b"</p></abstract></root>"
+        )
+        self.assertEqual(xml_string, expected)
+
+
 class TestCompareAff(unittest.TestCase):
     def test_compare_aff(self):
         "compare the affiliation details"
