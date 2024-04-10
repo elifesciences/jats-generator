@@ -80,6 +80,8 @@ def allowed_tags():
         "<xref ",
         "</xref>",
         "<break",
+        "<fig",
+        "</fig>"
     )
 
 

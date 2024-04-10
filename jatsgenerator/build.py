@@ -393,8 +393,19 @@ def set_abstract(parent, poa_article):
     """
     root_tag_name = "abstract"
     tag_name = "p"
+
+    # do not double-wrap in a p tag
+    if poa_article.abstract.startswith("<p>"):
+        # note: multiple p tag content will be collapsed into one p tag for now
+        abstract_text = etoolsutils.remove_tag("p", poa_article.abstract)
+    else:
+        abstract_text = poa_article.abstract
+
     root_xml_element = Element(root_tag_name)
-    new_tag = utils.append_to_tag(root_xml_element, tag_name, poa_article.abstract)
+    new_tag = utils.append_to_tag(
+        root_xml_element, tag_name, abstract_text, utils.XML_NAMESPACE_MAP
+    )
+
     parent.append(new_tag)
 
 
