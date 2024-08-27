@@ -342,7 +342,7 @@ def set_copyright(parent, poa_article):
     # Count authors (non-editors)
     non_editor = []
     for contributor in poa_article.contributors:
-        if contributor.contrib_type != "editor":
+        if contributor.contrib_type != "editor" and contributor.surname:
             non_editor.append(contributor)
 
     if len(non_editor) > 2:
