@@ -5,6 +5,7 @@ from xml.etree.ElementTree import Element
 from elifearticle.article import (
     Affiliation,
     Article,
+    ArticleDate,
     ContentBlock,
     Contributor,
     Event,
@@ -343,6 +344,37 @@ class TestSetSubArticle(unittest.TestCase):
         build.set_sub_article(root, sub_article)
         xml_string = ElementTree.tostring(root, encoding="utf-8")
 
+        self.assertEqual(xml_string, expected)
+
+
+class TestSetCopyright(unittest.TestCase):
+    "tests for set_copyright()"
+
+    def test_set_copyright(self):
+        "test building copyright tag"
+        root = Element("root")
+        article = Article("10.7554/eLife.00666", "Title")
+        # test a contributor with no surname
+        contributor_1 = Contributor("author", None, None, collab="Collab Name")
+        article.add_contributor(contributor_1)
+        contributor_2 = Contributor("author", "Surname", "Given")
+        article.add_contributor(contributor_2)
+        license_date = time.strptime("2037-11-13", "%Y-%m-%d")
+        date_object = ArticleDate("license", license_date)
+        article.dates["license"] = date_object
+        expected = (
+            b"<root>"
+            b"<copyright-statement>"
+            b"\xc2\xa9 2037, Surname"
+            b"</copyright-statement>"
+            b"<copyright-year>2037</copyright-year>"
+            b"<copyright-holder>Surname</copyright-holder>"
+            b"</root>"
+        )
+        # invoke
+        build.set_copyright(root, article)
+        # assert
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
         self.assertEqual(xml_string, expected)
 
 
