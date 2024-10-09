@@ -347,6 +347,66 @@ class TestSetSubArticle(unittest.TestCase):
         self.assertEqual(xml_string, expected)
 
 
+class TestSetCopyrightTags(unittest.TestCase):
+    "tests for set_copyright_tags()"
+
+    def test_set_copyright_tags(self):
+        "test setting copyright XML tags"
+        parent = Element("root")
+        copyright_year = "2024"
+        copyright_holder = "Surname et al"
+        expected = (
+            b"<root>"
+            b"<copyright-statement>\xc2\xa9 2024, Surname et al</copyright-statement>"
+            b"<copyright-year>2024</copyright-year>"
+            b"<copyright-holder>Surname et al</copyright-holder>"
+            b"</root>"
+        )
+        # invoke
+        build.set_copyright_tags(parent, copyright_year, copyright_holder)
+        # assert
+        xml_string = ElementTree.tostring(parent, encoding="utf-8")
+        self.assertEqual(xml_string, expected)
+
+
+class TestGenerateCopyrightHolder(unittest.TestCase):
+    "tests for generate_copyright_holder()"
+
+    def test_one_author(self):
+        "test generating copyright holder string for one author"
+        contributor_list = [Contributor("author", "Surname", "Given")]
+        expected = "Surname"
+        # invoke
+        result = build.generate_copyright_holder(contributor_list)
+        # assert
+        self.assertEqual(result, expected)
+
+    def test_two_authors(self):
+        "test generating copyright holder string for two authors"
+        contributor_list = [
+            Contributor("author", "Surname", "Given"),
+            Contributor("author", "Surname2", "Given2"),
+        ]
+        expected = "Surname & Surname2"
+        # invoke
+        result = build.generate_copyright_holder(contributor_list)
+        # assert
+        self.assertEqual(result, expected)
+
+    def test_multiple_authors(self):
+        "test generating copyright holder string for more than two authors"
+        contributor_list = [
+            Contributor("author", "Surname", "Given"),
+            Contributor("author", "Surname2", "Given2"),
+            Contributor("author", "Surname3", "Given3"),
+        ]
+        expected = "Surname et al"
+        # invoke
+        result = build.generate_copyright_holder(contributor_list)
+        # assert
+        self.assertEqual(result, expected)
+
+
 class TestSetCopyright(unittest.TestCase):
     "tests for set_copyright()"
 
