@@ -338,13 +338,28 @@ def set_license(parent, poa_article):
     ext_link.tail = poa_article.license.paragraph2
 
 
-def set_copyright(parent, poa_article):
-    # Count authors (non-editors)
+def set_copyright_tags(parent, copyright_year, copyright_holder):
+    "add copyright tags"
+    copyright_statement = "\u00a9 " + str(copyright_year) + ", " + copyright_holder
+    copyright_tag = SubElement(parent, "copyright-statement")
+    copyright_tag.text = copyright_statement
+
+    # copyright-year
+    copyright_year_tag = SubElement(parent, "copyright-year")
+    copyright_year_tag.text = str(copyright_year)
+
+    # copyright-holder
+    copyright_holder_tag = SubElement(parent, "copyright-holder")
+    copyright_holder_tag.text = copyright_holder
+
+
+def generate_copyright_holder(contributor_list):
+    "copyright holder string from Article editor contributors"
     non_editor = []
-    for contributor in poa_article.contributors:
+    for contributor in contributor_list:
         if contributor.contrib_type != "editor" and contributor.surname:
             non_editor.append(contributor)
-
+    # Count authors (non-editors)
     if len(non_editor) > 2:
         contributor = non_editor[0]
         copyright_holder = contributor.surname + " et al"
@@ -357,6 +372,12 @@ def set_copyright(parent, poa_article):
         copyright_holder = contributor.surname
     else:
         copyright_holder = ""
+    return copyright_holder
+
+
+def set_copyright(parent, poa_article):
+    "collect copyright data and set copyright tags"
+    copyright_holder = generate_copyright_holder(poa_article.contributors)
 
     # copyright-statement
     copyright_year = ""
@@ -367,17 +388,7 @@ def set_copyright(parent, poa_article):
     if date:
         copyright_year = date.date.tm_year
 
-    copyright_statement = "\u00a9 " + str(copyright_year) + ", " + copyright_holder
-    copyright_tag = SubElement(parent, "copyright-statement")
-    copyright_tag.text = copyright_statement
-
-    # copyright-year
-    copyright_year_tag = SubElement(parent, "copyright-year")
-    copyright_year_tag.text = str(copyright_year)
-
-    # copyright-holder
-    copyright_holder_tag = SubElement(parent, "copyright-holder")
-    copyright_holder_tag.text = copyright_holder
+    set_copyright_tags(parent, copyright_year, copyright_holder)
 
 
 def set_permissions(parent, poa_article):
