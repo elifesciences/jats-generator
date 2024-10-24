@@ -475,26 +475,40 @@ def do_subject_heading(poa_article):
     return False
 
 
+def set_subject(parent, subj_group_type, text):
+    "add subject tag to added subj-group tag"
+    subj_group = SubElement(parent, "subj-group")
+    subj_group.set("subj-group-type", subj_group_type)
+    subject_tag = SubElement(subj_group, "subject")
+    subject_tag.text = text
+
+
+def set_display_channel(parent, text):
+    "add tag subj-group subj-group-type display-channel"
+    set_subject(parent, "display-channel", text)
+
+
+def set_major_subject_area(parent, text):
+    "add tag subj-group subj-group-type heading"
+    set_subject(parent, "heading", text)
+
+
 def set_article_categories(parent, poa_article):
     # article-categories
     if do_article_categories(poa_article):
-        article_categories = SubElement(parent, "article-categories")
+        article_categories_tag = SubElement(parent, "article-categories")
 
         if do_display_channel(poa_article):
             # subj-group subj-group-type="display-channel"
-            subj_group = SubElement(article_categories, "subj-group")
-            subj_group.set("subj-group-type", "display-channel")
-            subject = SubElement(subj_group, "subject")
-            subject.text = poa_article.get_display_channel()
+            set_display_channel(
+                article_categories_tag, poa_article.get_display_channel()
+            )
 
         if do_subject_heading(poa_article):
             for article_category in poa_article.article_categories:
                 # subj-group subj-group-type="heading"
                 if article_category and article_category.rstrip().lstrip() != "":
-                    subj_group = SubElement(article_categories, "subj-group")
-                    subj_group.set("subj-group-type", "heading")
-                    subject = SubElement(subj_group, "subject")
-                    subject.text = article_category
+                    set_major_subject_area(article_categories_tag, article_category)
 
 
 def set_kwd_group_research_organism(parent, poa_article):
