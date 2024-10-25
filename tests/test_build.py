@@ -166,6 +166,15 @@ class TestSetAff(unittest.TestCase):
         expected = b"<root><aff /></root>"
         self.assertEqual(xml_string, expected)
 
+    def test_set_aff_omit_institution_wrap(self):
+        "test an empty institution-wrap tag is not added when there is no data"
+        root = Element("root")
+        contrib_type = "author"
+        build.set_aff(root, Affiliation(), contrib_type, institution_wrap=True)
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root><aff /></root>"
+        self.assertEqual(xml_string, expected)
+
     def test_set_aff_default(self):
         "default, older, style with some comma separated tags"
         root = Element("root")

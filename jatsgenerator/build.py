@@ -165,7 +165,9 @@ def set_aff(
         aff.text = affiliation.text
         return
 
-    if institution_wrap:
+    if institution_wrap and (
+        affiliation.ror or affiliation.department or affiliation.institution
+    ):
         institution_parent_tag = SubElement(aff, "institution-wrap")
     else:
         institution_parent_tag = aff
