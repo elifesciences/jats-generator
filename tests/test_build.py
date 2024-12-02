@@ -185,7 +185,7 @@ class TestSetAff(unittest.TestCase):
         expected = (
             b"<root>"
             b'<aff id="1">'
-            b'<institution-id institution-id="ror">ror</institution-id>'
+            b'<institution-id institution-id-type="ror">ror</institution-id>'
             b'<institution content-type="dept">Department</institution>, '
             b"<institution>Institution</institution>, "
             b"<addr-line>"
@@ -208,7 +208,7 @@ class TestSetAff(unittest.TestCase):
         xml_string = ElementTree.tostring(root, encoding="utf-8")
         expected = (
             b"<root>"
-            b'<aff id="1"><institution-id institution-id="ror">ror</institution-id>'
+            b'<aff id="1"><institution-id institution-id-type="ror">ror</institution-id>'
             b"<institution>Institution</institution>, "
             b"<addr-line>"
             b'<named-content content-type="city">City</named-content>'
@@ -236,7 +236,7 @@ class TestSetAff(unittest.TestCase):
             b"<root>"
             b'<aff id="1">'
             b"<institution-wrap>"
-            b'<institution-id institution-id="ror">ror</institution-id>'
+            b'<institution-id institution-id-type="ror">ror</institution-id>'
             b'<institution content-type="dept">Department</institution>'
             b"<institution>Institution</institution>"
             b"</institution-wrap>"
