@@ -174,7 +174,7 @@ def set_aff(
 
     if affiliation.ror:
         institution_id = SubElement(institution_parent_tag, "institution-id")
-        institution_id.set("institution-id", "ror")
+        institution_id.set("institution-id-type", "ror")
         institution_id.text = affiliation.ror
 
     if contrib_type != "editor":
