@@ -1,6 +1,5 @@
 import time
 from xml.etree.ElementTree import Element, SubElement
-from elifearticle import utils as eautils
 from elifetools import utils as etoolsutils
 from jatsgenerator import utils
 
@@ -569,7 +568,7 @@ def set_funding_source(parent, institution_id, institution_name):
         institution_id_tag.text = "http://dx.doi.org/10.13039/" + institution_id
     if institution_name:
         institution_tag = SubElement(institution_wrap, "institution")
-        institution_tag.text = eautils.entity_to_unicode(institution_name)
+        institution_tag.text = etoolsutils.entity_to_unicode(institution_name)
 
 
 def set_principal_award_recipients(parent, award):
