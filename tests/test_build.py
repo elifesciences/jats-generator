@@ -38,6 +38,35 @@ class TestBuild(unittest.TestCase):
         )
 
 
+class TestSetName(unittest.TestCase):
+    "tests for set_name()"
+
+    def test_set_name_collab(self):
+        "test setting one principal award recipient from contributor collab value"
+        root = Element("root")
+        contributor = Contributor(None, None, None)
+        contributor.collab = "Given Surname"
+        # invoke
+        build.set_name(root, contributor)
+        # assert
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root>Given Surname</root>"
+        self.assertEqual(xml_string, expected)
+
+    def test_set_name_multiple_collab(self):
+        "test edge case setting multiple contributor collab value"
+        root = Element("root")
+        contributor = Contributor(None, None, None)
+        contributor.collab = "Given Surname"
+        # invoke twice
+        build.set_name(root, contributor)
+        build.set_name(root, contributor)
+        # assert
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        expected = b"<root>Given Surname, Given Surname</root>"
+        self.assertEqual(xml_string, expected)
+
+
 class TestSetContribName(unittest.TestCase):
     def test_set_contrib_name_anonymous(self):
         root = Element("root")

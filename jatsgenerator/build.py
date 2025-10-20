@@ -76,14 +76,20 @@ def set_fn_group_ethics_information(parent, poa_article):
 
 
 def set_name(parent, contributor):
-    name = SubElement(parent, "name")
-    surname = SubElement(name, "surname")
-    surname.text = contributor.surname
-    given_name = SubElement(name, "given-names")
-    given_name.text = contributor.given_name
-    if contributor.suffix:
-        suffix = SubElement(name, "suffix")
-        suffix.text = contributor.suffix
+    if contributor.collab:
+        if parent.text:
+            parent.text += ", %s" % contributor.collab
+        else:
+            parent.text = contributor.collab
+    else:
+        name = SubElement(parent, "name")
+        surname = SubElement(name, "surname")
+        surname.text = contributor.surname
+        given_name = SubElement(name, "given-names")
+        given_name.text = contributor.given_name
+        if contributor.suffix:
+            suffix = SubElement(name, "suffix")
+            suffix.text = contributor.suffix
 
 
 def set_anonymous(parent):
@@ -535,12 +541,18 @@ def set_kwd_group_author_keywords(parent, poa_article):
         kwd.text = author_keyword
 
 
-def set_funding_group(parent, poa_article):
-    # funding-group
+def set_funding_awards(parent, funding_awards):
+    "add funding XML to the parent element"
     funding_group = SubElement(parent, "funding-group")
-    for index, award in enumerate(poa_article.funding_awards):
+    for index, award in enumerate(funding_awards):
         par_id = "par-" + str(index + 1)
         set_award_group(funding_group, award, par_id)
+    return funding_group
+
+
+def set_funding_group(parent, poa_article):
+    # funding-group
+    funding_group = set_funding_awards(parent, poa_article.funding_awards)
     if poa_article.funding_note:
         funding_statement = SubElement(funding_group, "funding-statement")
         funding_statement.text = poa_article.funding_note
