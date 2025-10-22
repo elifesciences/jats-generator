@@ -6,9 +6,11 @@ from elifearticle.article import (
     Affiliation,
     Article,
     ArticleDate,
+    Award,
     ContentBlock,
     Contributor,
     Event,
+    FundingAward,
     RelatedArticle,
     Role,
 )
@@ -546,6 +548,82 @@ class TestCompareAff(unittest.TestCase):
         aff2.text = "Equal"
         result = build.compare_aff(aff1, aff2)
         self.assertEqual(result, True)
+
+
+class TestSetFundingGroup(unittest.TestCase):
+    "tests for set_funding_group()"
+
+    def test_set_funding_group(self):
+        "test adding a variety of funding XML"
+        root = Element("root")
+        article = Article("10.7554/eLife.00666", "Title")
+
+        funding_note = "Funding statement."
+        article.funding_note = funding_note
+
+        funding_award_1 = FundingAward()
+        funding_award_1.institution_name = "Czech Science Foundation"
+        funding_award_1.institution_id = "https://ror.org/01pv73b02"
+        funding_award_1.institution_id_type = "ror"
+        award_1 = Award()
+        award_1.award_id = "10.13039/501100001824"
+        award_1.award_id_type = "doi"
+        funding_award_1.add_award(award_1)
+        contributor1 = Contributor(None, "Atherden", "Frederick Peter")
+        contributor1.suffix = "III"
+        funding_award_1.add_principal_award_recipient(contributor1)
+
+        funding_award_2 = FundingAward()
+        funding_award_2.institution_name = "Howard Hughes Medical Institute"
+        funding_award_2.institution_id = "100000011"
+        funding_award_2.institution_id_type = "FundRef"
+        award_2 = Award()
+        award_2.award_id = "F32 GM089018"
+        funding_award_2.add_award(award_2)
+        contributor2 = Contributor(None, None, None)
+        contributor2.collab = "Melissa Harrison"
+        funding_award_2.add_principal_award_recipient(contributor2)
+
+        article.funding_awards = [funding_award_1, funding_award_2]
+
+        expected = (
+            b"<root>"
+            b"<funding-group>"
+            b'<award-group id="par-1">'
+            b"<funding-source>"
+            b"<institution-wrap>"
+            b'<institution-id institution-id-type="ror">https://ror.org/01pv73b02</institution-id>'
+            b"<institution>Czech Science Foundation</institution>"
+            b"</institution-wrap>"
+            b"</funding-source>"
+            b'<award-id award-id-type="doi">10.13039/501100001824</award-id>'
+            b"<principal-award-recipient>"
+            b"<name>"
+            b"<surname>Atherden</surname>"
+            b"<given-names>Frederick Peter</given-names>"
+            b"<suffix>III</suffix>"
+            b"</name>"
+            b"</principal-award-recipient>"
+            b"</award-group>"
+            b'<award-group id="par-2">'
+            b"<funding-source>"
+            b"<institution-wrap>"
+            b'<institution-id institution-id-type="FundRef">http://dx.doi.org/10.13039/100000011</institution-id>'
+            b"<institution>Howard Hughes Medical Institute</institution>"
+            b"</institution-wrap>"
+            b"</funding-source>"
+            b"<award-id>F32 GM089018</award-id>"
+            b"<principal-award-recipient>Melissa Harrison</principal-award-recipient>"
+            b"</award-group>"
+            b"<funding-statement>%s</funding-statement>"
+            b"</funding-group>"
+            b"</root>"
+        ) % bytes(funding_note, encoding="utf-8")
+        # invoke
+        build.set_funding_group(root, article)
+        # assert
+        xml_string = ElementTree.tostring(root, encoding="utf-8")
+        self.assertEqual(xml_string, expected)
 
 
 class TestSetCorresp(unittest.TestCase):
