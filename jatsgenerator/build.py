@@ -562,22 +562,39 @@ def set_award_group(parent, award, par_id):
     award_group = SubElement(parent, "award-group")
     award_group.set("id", par_id)
     if award.institution_name or award.institution_id:
-        set_funding_source(award_group, award.institution_id, award.institution_name)
+        set_funding_source(
+            award_group,
+            award.institution_id,
+            award.institution_name,
+            award.institution_id_type,
+        )
     for award_object in award.awards:
         if award_object.award_id:
             award_id_tag = SubElement(award_group, "award-id")
             award_id_tag.text = award_object.award_id
+            if award_object.award_id_type:
+                award_id_tag.set("award-id-type", award_object.award_id_type)
     if award.principal_award_recipients:
         set_principal_award_recipients(award_group, award)
 
 
-def set_funding_source(parent, institution_id, institution_name):
+def set_funding_source(
+    parent, institution_id, institution_name, institution_id_type=None
+):
     funding_source = SubElement(parent, "funding-source")
     institution_wrap = SubElement(funding_source, "institution-wrap")
+
+    # default type
+    if not institution_id_type:
+        institution_id_type = "FundRef"
+
     if institution_id:
         institution_id_tag = SubElement(institution_wrap, "institution-id")
-        institution_id_tag.set("institution-id-type", "FundRef")
-        institution_id_tag.text = "http://dx.doi.org/10.13039/" + institution_id
+        institution_id_tag.set("institution-id-type", institution_id_type)
+        if institution_id_type == "FundRef":
+            institution_id_tag.text = "http://dx.doi.org/10.13039/" + institution_id
+        else:
+            institution_id_tag.text = institution_id
     if institution_name:
         institution_tag = SubElement(institution_wrap, "institution")
         institution_tag.text = etoolsutils.entity_to_unicode(institution_name)

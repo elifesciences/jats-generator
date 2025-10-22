@@ -16,7 +16,7 @@ setup(
     license="MIT",
     install_requires=[
         "elifetools>=0.46.0",
-        "elifearticle>=0.16.0",
+        "elifearticle>=0.24.0",
         "ejpcsvparser>=0.3.0",
         "GitPython",
         "configparser",
